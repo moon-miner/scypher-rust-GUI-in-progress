@@ -1,0 +1,536 @@
+patato@patato:/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui$ cargo tauri info
+WARNING: no lock files found, defaulting to npm
+
+[✔] Environment
+    - OS: Debian 12.0.0 X64
+    ✔ webkit2gtk-4.0: 2.48.3
+    ✔ rsvg2: 2.54.7
+    ✔ rustc: 1.87.0 (17067e9ac 2025-05-09)
+    ✔ cargo: 1.87.0 (99624be96 2025-05-06)
+    ✔ rustup: 1.27.1 (54dd3d00f 2024-04-24)
+    ✔ Rust toolchain: stable-x86_64-unknown-linux-gnu (environment override by RUSTUP_TOOLCHAIN)
+    - node: 23.3.0
+    - yarn: 1.22.22
+    - npm: 10.9.0
+
+[-] Packages
+    - tauri [RUST]: 1.8.3
+    - tauri-build [RUST]: 1.5.6
+    - wry [RUST]: 0.24.11
+    - tao [RUST]: 0.16.10
+    - tauri-cli [RUST]: 1.6.5
+    - @tauri-apps/api : not installed!
+    - @tauri-apps/cli [NPM]: 1.6.5 (outdated, latest: 2.5.0)
+
+[-] App
+    - build-type: bundle
+    - CSP: unset
+    - distDir: ../src
+    - devPath: ../src
+patato@patato:/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui$ rustc --version
+cargo --version
+rustc 1.87.0 (17067e9ac 2025-05-09)
+cargo 1.87.0 (99624be96 2025-05-06)
+patato@patato:/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui$ cargo tauri --version
+tauri-cli 1.6.5
+patato@patato:/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui$ cd src-tauri
+patato@patato:/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui/src-tauri$ cat Cargo.toml
+[package]
+name = "scypher-gui"
+version = "3.0.0"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri = { version = "1.8", features = [ "dialog-open", "fs-read-file", "fs-exists", "clipboard-all", "dialog-save", "fs-write-file"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Tus dependencias existentes de SCypher
+clap = "4.0"
+argon2 = "0.5"
+hex = "0.4"
+sha2 = "0.10"
+zeroize = "1.6"
+ctrlc = "3.0"
+rand = "0.8"
+rpassword = "7.0"      # Para lectura segura de contraseñas
+libc = "0.2"           # Para funciones de sistema Unix
+patato@patato:/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui/src-tauri$ cat tauri.conf.json
+{
+  "build": {
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "",
+    "devPath": "../src",
+    "distDir": "../src"
+  },
+  "package": {
+    "productName": "SCypher",
+    "version": "3.0.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "fs": {
+        "all": false,
+        "readFile": true,
+        "writeFile": true,
+        "exists": true,
+        "scope": ["$APPDATA/*", "$DESKTOP/*", "$DOCUMENT/*", "$HOME/*"]
+      },
+      "dialog": {
+        "all": false,
+        "open": true,
+        "save": true
+      },
+      "clipboard": {
+        "all": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "com.scypher.app",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ]
+    },
+    "security": {
+      "csp": null
+    },
+    "updater": {
+      "active": false
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 800,
+        "resizable": true,
+        "title": "SCypher v3.0 - XOR-based BIP39 Seed Cipher",
+        "width": 1000,
+        "center": true,
+        "minHeight": 600,
+        "minWidth": 800,
+        "decorations": true,
+        "transparent": false
+      }
+    ]
+  }
+}
+patato@patato:/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui/src-tauri$ cargo check --message-format=short
+   Compiling hashbrown v0.15.4
+   Compiling equivalent v1.0.2
+   Compiling heck v0.5.0
+   Compiling cfg-if v1.0.0
+    Checking libc v0.2.172
+   Compiling serde v1.0.219
+   Compiling zerocopy v0.8.25
+    Checking smallvec v1.15.1
+   Compiling siphasher v0.3.11
+   Compiling getrandom v0.2.16
+   Compiling getrandom v0.1.16
+   Compiling siphasher v1.0.1
+    Checking bitflags v1.3.2
+   Compiling rand_core v0.6.4
+   Compiling rand_core v0.5.1
+   Compiling phf_shared v0.8.0
+   Compiling phf_shared v0.11.3
+   Compiling rand_pcg v0.2.1
+   Compiling indexmap v2.9.0
+   Compiling stable_deref_trait v1.2.0
+   Compiling anyhow v1.0.98
+   Compiling phf_shared v0.10.0
+    Checking once_cell v1.21.3
+   Compiling zerofrom v0.1.6
+   Compiling memchr v2.7.4
+   Compiling yoke v0.8.0
+    Checking futures-core v0.3.31
+    Checking pin-project-lite v0.2.16
+    Checking slab v0.4.9
+    Checking thiserror v1.0.69
+   Compiling fnv v1.0.7
+    Checking futures-task v0.3.31
+    Checking pin-utils v0.1.0
+    Checking futures-util v0.3.31
+   Compiling zerovec v0.11.2
+   Compiling ppv-lite86 v0.2.21
+    Checking futures-channel v0.3.31
+   Compiling strsim v0.11.1
+    Checking bitflags v2.9.1
+   Compiling darling_core v0.20.11
+   Compiling rand_chacha v0.3.1
+   Compiling rand_chacha v0.2.2
+   Compiling rand v0.8.5
+   Compiling rand v0.7.3
+    Checking log v0.4.27
+   Compiling tinystr v0.8.1
+   Compiling serde_spanned v0.6.9
+   Compiling toml_datetime v0.6.11
+   Compiling toml v0.5.11
+    Checking futures-executor v0.3.31
+   Compiling toml_edit v0.22.27
+   Compiling toml_edit v0.19.15
+   Compiling phf_generator v0.11.3
+   Compiling phf_generator v0.8.0
+   Compiling phf_generator v0.10.0
+   Compiling string_cache_codegen v0.5.4
+   Compiling phf_codegen v0.10.0
+   Compiling phf_macros v0.8.0
+   Compiling phf_codegen v0.8.0
+   Compiling system-deps v5.0.0
+   Compiling selectors v0.22.0
+   Compiling markup5ever v0.11.0
+   Compiling writeable v0.6.1
+   Compiling litemap v0.8.0
+   Compiling icu_locale_core v2.0.0
+   Compiling toml v0.8.23
+   Compiling proc-macro-crate v1.3.1
+   Compiling darling_macro v0.20.11
+   Compiling system-deps v6.2.2
+   Compiling potential_utf v0.1.2
+   Compiling zerotrie v0.2.2
+    Checking scopeguard v1.2.0
+   Compiling glib-macros v0.15.13
+   Compiling byteorder v1.5.0
+   Compiling new_debug_unreachable v1.0.6
+   Compiling lock_api v0.4.13
+   Compiling glib-sys v0.15.10
+   Compiling gobject-sys v0.15.10
+   Compiling gdk-sys v0.15.1
+   Compiling gio-sys v0.15.10
+   Compiling atk-sys v0.15.1
+   Compiling pango-sys v0.15.10
+   Compiling cairo-sys-rs v0.15.1
+   Compiling gdk-pixbuf-sys v0.15.10
+   Compiling gtk-sys v0.15.3
+   Compiling darling v0.20.11
+   Compiling serde_with_macros v3.12.0
+    Checking glib v0.15.12
+   Compiling icu_provider v2.0.0
+   Compiling icu_collections v2.0.0
+   Compiling phf_macros v0.11.3
+    Checking getrandom v0.3.3
+    Checking parking_lot_core v0.9.11
+   Compiling precomputed-hash v0.1.1
+   Compiling mac v0.1.1
+   Compiling futf v0.1.5
+   Compiling parking_lot v0.12.4
+   Compiling icu_properties_data v2.0.1
+   Compiling icu_normalizer_data v2.0.0
+    Checking futures-io v0.3.31
+   Compiling dtoa v1.0.10
+   Compiling utf-8 v0.7.6
+   Compiling tendril v0.4.3
+   Compiling dtoa-short v0.3.5
+   Compiling icu_properties v2.0.1
+   Compiling icu_normalizer v2.0.0
+   Compiling string_cache v0.8.9
+   Compiling phf v0.8.0
+   Compiling soup2-sys v0.2.0
+   Compiling phf v0.10.1
+    Checking simd-adler32 v0.3.7
+   Compiling itoa v0.4.8
+   Compiling matches v0.1.10
+   Compiling nodrop v0.1.14
+   Compiling ryu v1.0.20
+    Checking itoa v1.0.15
+    Checking linux-raw-sys v0.4.15
+   Compiling alloc-no-stdlib v2.0.4
+   Compiling idna_adapter v1.2.1
+   Compiling serde_json v1.0.140
+   Compiling alloc-stdlib v0.2.2
+   Compiling servo_arc v0.1.1
+   Compiling cssparser v0.27.2
+   Compiling uuid v1.17.0
+   Compiling fxhash v0.2.1
+    Checking rustix v0.38.44
+   Compiling hashbrown v0.12.3
+    Checking adler2 v2.0.0
+   Compiling utf8_iter v1.0.4
+   Compiling thin-slice v0.1.1
+   Compiling html5ever v0.26.0
+   Compiling indexmap v1.9.3
+   Compiling idna v1.0.3
+    Checking miniz_oxide v0.8.8
+   Compiling form_urlencoded v1.2.1
+   Compiling jsonptr v0.4.7
+   Compiling cfb v0.7.3
+    Checking memoffset v0.9.1
+    Checking wayland-sys v0.31.6
+   Compiling brotli-decompressor v4.0.3
+    Checking crossbeam-utils v0.8.21
+   Compiling javascriptcore-rs-sys v0.4.0
+   Compiling quick-xml v0.37.5
+   Compiling typenum v1.18.0
+    Checking crc32fast v1.4.2
+   Compiling same-file v1.0.6
+    Checking linux-raw-sys v0.9.4
+    Checking downcast-rs v1.2.1
+    Checking percent-encoding v2.3.1
+    Checking wayland-backend v0.3.10
+   Compiling walkdir v2.5.0
+    Checking rustix v1.0.7
+   Compiling generic-array v0.14.7
+    Checking flate2 v1.1.2
+   Compiling wayland-scanner v0.31.6
+   Compiling gtk v0.15.5
+   Compiling brotli v7.0.0
+   Compiling json-patch v2.0.0
+   Compiling infer v0.13.0
+    Checking field-offset v0.3.6
+   Compiling kuchikiki v0.8.2
+   Compiling url v2.5.4
+   Compiling phf v0.11.3
+    Checking fdeflate v0.3.7
+   Compiling serde_with v3.12.0
+   Compiling webkit2gtk-sys v0.18.0
+   Compiling gtk3-macros v0.15.6
+   Compiling dunce v1.0.5
+    Checking gio v0.15.12
+    Checking pango v0.15.10
+    Checking cairo-rs v0.15.12
+    Checking atk v0.15.1
+   Compiling glob v0.3.2
+    Checking wayland-client v0.31.10
+   Compiling tauri-utils v1.6.2
+    Checking png v0.17.16
+   Compiling gdkx11-sys v0.15.1
+    Checking raw-window-handle v0.5.2
+    Checking minimal-lexical v0.2.1
+    Checking fixedbitset v0.4.2
+    Checking bytes v1.10.1
+    Checking petgraph v0.6.5
+    Checking nom v7.1.3
+    Checking x11 v2.21.0
+    Checking wayland-protocols v0.32.8
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.6
+   Compiling toml v0.7.8
+    Checking subtle v2.6.1
+    Checking lazy_static v1.5.0
+    Checking fastrand v2.3.0
+    Checking tempfile v3.20.0
+    Checking thiserror v2.0.12
+   Compiling tao v0.16.10
+   Compiling digest v0.10.7
+    Checking tree_magic_mini v3.1.6
+    Checking num-traits v0.2.19
+    Checking x11-dl v2.21.0
+    Checking semver v1.0.26
+    Checking http v0.2.12
+    Checking javascriptcore-rs v0.16.0
+    Checking crossbeam-channel v0.5.15
+    Checking gdkwayland-sys v0.15.3
+   Compiling embed-resource v2.5.1
+    Checking aho-corasick v1.1.3
+    Checking os_pipe v1.2.2
+    Checking instant v0.1.13
+   Compiling dirs-sys-next v0.1.2
+    Checking byteorder-lite v0.1.0
+    Checking bytemuck v1.23.1
+    Checking wayland-protocols-wlr v0.3.8
+    Checking regex-syntax v0.8.5
+    Checking utf8parse v0.2.2
+    Checking x11rb-protocol v0.13.1
+   Compiling cpufeatures v0.2.17
+   Compiling sha2 v0.10.9
+    Checking anstyle-parse v0.2.7
+   Compiling wry v0.24.11
+    Checking image v0.25.6
+   Compiling dirs-next v2.0.0
+    Checking wl-clipboard-rs v0.9.2
+    Checking regex-automata v0.4.9
+   Compiling tauri-winres v0.1.1
+   Compiling ico v0.4.0
+   Compiling cargo_toml v0.15.3
+    Checking crossbeam-epoch v0.9.18
+    Checking bstr v1.12.0
+    Checking is_terminal_polyfill v1.70.1
+    Checking anstyle-query v1.1.3
+    Checking anstyle v1.0.11
+    Checking http-range v0.1.5
+    Checking colorchoice v1.0.4
+   Compiling tauri-codegen v1.4.6
+    Checking anstream v0.6.19
+   Compiling rfd v0.10.0
+    Checking crossbeam-deque v0.8.6
+    Checking xattr v1.5.0
+    Checking globset v0.4.16
+   Compiling tauri-build v1.5.6
+    Checking filetime v0.2.25
+   Compiling tauri v1.8.3
+    Checking clap_lex v0.7.5
+    Checking base64ct v1.8.0
+    Checking clap_builder v4.5.40
+    Checking x11rb v0.13.1
+    Checking password-hash v0.5.0
+    Checking serialize-to-javascript v0.1.2
+    Checking ignore v0.4.23
+    Checking tar v0.4.44
+    Checking nix v0.30.1
+    Checking arboard v3.5.0
+    Checking blake2 v0.10.6
+    Checking tokio v1.45.1
+    Checking rtoolbox v0.0.3
+    Checking encoding_rs v0.8.35
+    Checking state v0.5.3
+    Checking rpassword v7.4.0
+    Checking clap v4.5.40
+    Checking argon2 v0.5.3
+    Checking ctrlc v3.4.7
+    Checking zeroize v1.8.1
+    Checking hex v0.4.3
+   Compiling tauri-macros v1.4.7
+   Compiling scypher-gui v3.0.0 (/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui/src-tauri)
+    Checking gdk-pixbuf v0.15.11
+    Checking soup2 v0.2.1
+    Checking gdk v0.15.4
+    Checking webkit2gtk v0.18.2
+    Checking tauri-runtime v0.14.6
+    Checking tauri-runtime-wry v0.14.11
+src/bip39/mod.rs:10:36: warning: unused imports: `index_to_word` and `word_to_index`
+src/bip39/mod.rs:11:22: warning: unused imports: `analyze_seed_phrase`, `is_valid_seed_phrase`, `validate_seed_phrase`, `validate_word_count`, and `validate_words`
+src/bip39/mod.rs:12:22: warning: unused imports: `bits_to_phrase`, `entropy_to_phrase`, `hex_to_phrase`, `phrase_to_bits`, `phrase_to_entropy`, and `phrase_to_hex`
+src/cli/input.rs:4:5: warning: unused import: `rpassword::read_password`
+src/cli/mod.rs:10:5: warning: unused imports: `read_password_secure`, `read_seed_from_file`, and `read_seed_interactive`
+src/cli/mod.rs:16:5: warning: unused imports: `output_result` and `save_to_file`
+src/cli/mod.rs:21:5: warning: unused imports: `MenuState`, `handle_menu_error`, `handle_post_processing_menu`, and `run_interactive_menu`
+src/cli/mod.rs:28:5: warning: unused imports: `clear_screen`, `colors`, and `show_banner`
+src/cli/menu.rs:143:34: warning: unused variable: `result`: help: if this is intentional, prefix it with an underscore: `_result`
+src/crypto/xor.rs:38:8: warning: function `xor_bits` is never used
+src/crypto/xor.rs:56:8: warning: function `bytes_to_bits` is never used
+src/crypto/xor.rs:70:8: warning: function `bits_to_bytes` is never used
+src/crypto/xor.rs:90:8: warning: function `bytes_to_hex` is never used
+src/crypto/xor.rs:95:8: warning: function `hex_to_bytes` is never used
+src/crypto/xor.rs:101:8: warning: function `verify_xor_reversibility` is never used
+src/crypto/checksum.rs:129:8: warning: function `get_checksum_length` is never used
+src/bip39/mod.rs:20:8: warning: function `verify_checksum` is never used
+src/bip39/wordlist.rs:245:8: warning: function `words_with_prefix` is never used
+src/bip39/validation.rs:117:8: warning: function `analyze_seed_phrase` is never used
+src/bip39/validation.rs:159:12: warning: struct `SeedPhraseAnalysis` is never constructed
+src/bip39/validation.rs:171:12: warning: method `generate_report` is never used
+src/bip39/validation.rs:213:8: warning: function `is_valid_seed_phrase` is never used
+src/bip39/validation.rs:218:8: warning: function `sanitize_seed_phrase` is never used
+src/bip39/conversion.rs:95:8: warning: function `phrase_to_entropy` is never used
+src/bip39/conversion.rs:120:4: warning: function `bits_to_bytes` is never used
+src/bip39/conversion.rs:153:8: warning: function `validate_and_fix_checksum` is never used
+src/bip39/conversion.rs:179:12: warning: struct `SeedPhraseInfo` is never constructed
+src/bip39/conversion.rs:188:8: warning: function `analyze_phrase` is never used
+src/bip39/conversion.rs:208:8: warning: function `phrase_to_hex` is never used
+src/bip39/conversion.rs:214:8: warning: function `hex_to_phrase` is never used
+src/cli/input.rs:7:7: warning: constant `MIN_PASSWORD_LENGTH` is never used
+src/cli/input.rs:8:7: warning: constant `MAX_SEED_LENGTH` is never used
+src/cli/input.rs:11:8: warning: function `read_seed_interactive` is never used
+src/cli/input.rs:43:8: warning: function `read_seed_from_file` is never used
+src/cli/input.rs:68:8: warning: function `read_password_secure` is never used
+src/cli/input.rs:103:4: warning: function `read_password_with_asterisks` is never used
+src/cli/input.rs:170:4: warning: function `validate_seed_input` is never used
+src/cli/input.rs:209:8: warning: function `read_confirmation` is never used
+src/cli/input.rs:226:8: warning: function `read_number` is never used
+src/cli/output.rs:9:7: warning: constant `DEFAULT_EXTENSION` is never used
+src/cli/output.rs:10:7: warning: constant `FILE_PERMISSIONS` is never used
+src/cli/output.rs:13:8: warning: function `output_result` is never used
+src/cli/output.rs:47:8: warning: function `save_to_file` is never used
+src/cli/output.rs:95:4: warning: function `ensure_extension` is never used
+src/cli/output.rs:104:8: warning: function `validate_output_path` is never used
+src/cli/output.rs:132:8: warning: function `show_file_info` is never used
+src/cli/output.rs:162:12: warning: function `separator_line` is never used
+src/cli/output.rs:167:12: warning: function `in_columns` is never used
+src/cli/output.rs:195:12: warning: function `format_seed_phrase` is never used
+src/cli/display.rs:6:7: warning: constant `VERSION` is never used
+src/cli/display.rs:21:8: warning: function `clear_screen` is never used
+src/cli/display.rs:45:8: warning: function `show_banner` is never used
+src/cli/display.rs:72:8: warning: function `show_license_text` is never used
+src/cli/display.rs:106:8: warning: function `show_cipher_details` is never used
+src/cli/display.rs:171:8: warning: function `show_usage_examples` is never used
+src/cli/display.rs:207:8: warning: function `show_compatibility_info` is never used
+src/cli/display.rs:243:8: warning: function `read_user_input` is never used
+src/cli/display.rs:253:8: warning: function `wait_for_enter` is never used
+src/cli/display.rs:10:15: warning: constant `RESET` is never used
+src/cli/display.rs:11:15: warning: constant `PRIMARY` is never used
+src/cli/display.rs:12:15: warning: constant `BRIGHT` is never used
+src/cli/display.rs:13:15: warning: constant `DIM` is never used
+src/cli/display.rs:14:15: warning: constant `WARNING` is never used
+src/cli/display.rs:15:15: warning: constant `ERROR` is never used
+src/cli/display.rs:16:15: warning: constant `FRAME` is never used
+src/cli/display.rs:17:15: warning: constant `SUCCESS` is never used
+src/cli/menu.rs:9:10: warning: enum `MainMenuChoice` is never used
+src/cli/menu.rs:17:10: warning: enum `HelpMenuChoice` is never used
+src/cli/menu.rs:27:10: warning: enum `PostProcessChoice` is never used
+src/cli/menu.rs:35:10: warning: enum `PostSaveChoice` is never used
+src/cli/menu.rs:43:9: warning: fields `should_exit`, `return_to_main`, and `processed_result` are never read
+src/cli/menu.rs:59:8: warning: function `show_main_menu` is never used
+src/cli/menu.rs:88:8: warning: function `show_help_submenu` is never used
+src/cli/menu.rs:120:8: warning: function `handle_help_submenu` is never used
+src/cli/menu.rs:143:8: warning: function `show_post_processing_menu` is never used
+src/cli/menu.rs:169:8: warning: function `handle_save_result` is never used
+src/cli/menu.rs:210:8: warning: function `show_post_save_menu` is never used
+src/cli/menu.rs:235:8: warning: function `handle_post_save_menu` is never used
+src/cli/menu.rs:243:8: warning: function `handle_post_processing_menu` is never used
+src/cli/menu.rs:268:8: warning: function `run_interactive_menu` is never used
+src/cli/menu.rs:298:8: warning: function `handle_menu_error` is never used
+src/security/mod.rs:31:8: warning: function `setup_comprehensive_security` is never used
+src/security/mod.rs:99:12: warning: methods `as_str`, `as_bytes`, `len`, and `is_empty` are never used
+src/security/mod.rs:140:12: warning: struct `SecureBytes` is never constructed
+src/security/mod.rs:146:12: warning: multiple associated items are never used
+src/security/mod.rs:247:8: warning: function `security_audit` is never used
+src/security/mod.rs:282:12: warning: struct `SecurityAuditReport` is never constructed
+src/security/mod.rs:289:8: warning: multiple associated items are never used
+src/security/memory.rs:21:8: warning: function `check_memory_integrity` is never used
+src/security/memory.rs:42:8: warning: function `deep_clear_vec` is never used
+src/security/memory.rs:59:12: warning: associated items `new`, `from_slice`, `as_slice`, `as_mut_slice`, `len`, and `is_empty` are never used
+src/security/memory.rs:101:8: warning: function `lock_memory` is never used
+src/security/memory.rs:162:12: warning: multiple associated items are never used
+src/security/memory.rs:232:8: warning: function `disable_swap_for_process` is never used
+src/security/memory.rs:255:8: warning: function `check_memory_lock_limits` is never used
+src/security/memory.rs:276:8: warning: function `configure_memory_limits` is never used
+src/security/process.rs:10:8: warning: function `setup_process_protections` is never used
+src/security/process.rs:19:8: warning: function `disable_core_dumps` is never used
+src/security/process.rs:56:8: warning: function `setup_anti_debugging` is never used
+src/security/process.rs:88:8: warning: function `configure_process_isolation` is never used
+src/security/process.rs:109:4: warning: function `setup_seccomp_filter` is never used
+src/security/process.rs:134:8: warning: function `check_process_integrity` is never used
+src/security/environment.rs:10:7: warning: constant `DANGEROUS_ENV_VARS` is never used
+src/security/environment.rs:23:7: warning: constant `SENSITIVE_ENV_VARS` is never used
+src/security/environment.rs:35:8: warning: function `setup_secure_environment` is never used
+src/security/environment.rs:45:8: warning: function `validate_environment_safety` is never used
+src/security/environment.rs:90:8: warning: function `clean_sensitive_variables` is never used
+src/security/environment.rs:108:8: warning: function `configure_secure_umask` is never used
+src/security/environment.rs:121:8: warning: function `validate_execution_context` is never used
+src/security/environment.rs:152:4: warning: function `is_running_in_container` is never used
+src/security/environment.rs:161:4: warning: function `check_cgroup_for_container` is never used
+src/security/environment.rs:173:4: warning: function `is_debugger_present` is never used
+src/security/environment.rs:220:4: warning: function `is_secure_temp_dir` is never used
+src/security/environment.rs:252:4: warning: function `is_development_environment` is never used
+src/security/environment.rs:276:8: warning: function `get_environment_info` is never used
+src/security/environment.rs:306:8: warning: function `setup_clean_environment` is never used
+src/security/mod.rs:197:12: warning: function `constant_time_eq` is never used
+src/security/mod.rs:211:12: warning: function `secure_random_bytes` is never used
+src/security/mod.rs:220:12: warning: function `secure_wipe` is never used
+src/security/mod.rs:232:12: warning: function `secure_string_from_input` is never used
+warning: `scypher-gui` (bin "scypher-gui") generated 120 warnings (run `cargo fix --bin "scypher-gui"` to apply 8 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 23s
+patato@patato:/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui/src-tauri$ cargo tree | grep tauri
+scypher-gui v3.0.0 (/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui/src-tauri)
+├── tauri v1.8.3
+│   ├── tauri-macros v1.4.7 (proc-macro)
+│   │   ├── tauri-codegen v1.4.6
+│   │   │   ├── tauri-utils v1.6.2
+│   │   └── tauri-utils v1.6.2 (*)
+│   ├── tauri-runtime v0.14.6
+│   │   ├── tauri-utils v1.6.2
+│   ├── tauri-runtime-wry v0.14.11
+│   │   ├── tauri-runtime v0.14.6 (*)
+│   │   ├── tauri-utils v1.6.2 (*)
+│   ├── tauri-utils v1.6.2 (*)
+└── tauri-build v1.5.6
+    ├── tauri-utils v1.6.2 (*)
+    ├── tauri-winres v0.1.1
+patato@patato:/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui/src-tauri$
+
