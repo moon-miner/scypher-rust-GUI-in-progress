@@ -844,7 +844,7 @@
             }
         }
 
-        // Event listener initialization
+        // Event listener initialization - VERSIÓN CORREGIDA
         function initializeEventListeners() {
             // Word input events
             const wordInput = document.getElementById('wordInput');
@@ -852,20 +852,37 @@
             wordInput.addEventListener('keydown', handleKeyDown);
             wordInput.addEventListener('blur', handleInputBlur);
 
-            // Container events
+            // Container events - SIMPLIFICADO PARA TAURI
             const container = document.getElementById('wordContainer');
             container.addEventListener('click', focusWordInput);
-            container.addEventListener('dragover', handleDragOver);
-            container.addEventListener('dragleave', handleDragLeave);
-            container.addEventListener('drop', handleDrop);
+
+            // SOLO efectos visuales de drag - NO procesamiento
+            container.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'copy';
+                e.currentTarget.classList.add('drag-over');
+            });
+
+            container.addEventListener('dragenter', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+
+            container.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.currentTarget.classList.remove('drag-over');
+            });
+
+            // NO agregamos addEventListener('drop') - usaremos API nativa
 
             // Control events
             document.getElementById('wordCount').addEventListener('change', handleModeChange);
             document.getElementById('generateSeed').addEventListener('click', async function() {
-                // Verificar si hay palabras actuales
                 if (currentWords.length > 0) {
                     if (!confirm('¿Esto reemplazará las palabras actuales, continuar?')) {
-                        return; // Usuario canceló
+                        return;
                     }
                 }
 
@@ -884,34 +901,7 @@
                     showToast(`Failed to generate seed: ${error}`, 'error');
                 }
             });
-            document.getElementById('clearInput').addEventListener('click', function() {
-                // Verificar si hay contenido que limpiar
-                const hasWords = currentWords.length > 0;
-                const hasPassword = document.getElementById('passwordInput').value.length > 0;
-                const hasResult = document.getElementById('resultArea').classList.contains('show');
-
-                if (hasWords || hasPassword || hasResult) {
-                    if (!confirm('¿Estás seguro de borrar todas las palabras y limpiar todo?')) {
-                        return; // Usuario canceló
-                    }
-                }
-
-                // Ejecutar limpieza completa
-                currentWords = [];
-                editingIndex = -1;
-                document.getElementById('wordInput').value = '';
-                document.getElementById('passwordInput').value = '';
-                document.getElementById('resultArea').classList.remove('show');
-                document.getElementById('resultText').textContent = '';
-
-                renderWords();
-                hideAutocomplete();
-                updateValidationStatus();
-                updateProcessButtonState();
-                focusWordInput();
-
-                document.getElementById('statusText').textContent = 'Ready • AUTO mode • BIP39 validation enabled • Argon2id: 5 iterations, 128MB';
-            });
+            document.getElementById('clearInput').addEventListener('click', clearAllWords);
             document.getElementById('browseFile').addEventListener('click', handleModernBrowse);
 
             // Security events
@@ -927,6 +917,80 @@
 
             // Autocomplete events
             document.getElementById('autocompleteDropdown').addEventListener('click', handleAutocompleteClick);
+
+            // INICIALIZAR API NATIVA DE TAURI
+            initializeTauriFileDrop();
+        }
+
+        // NUEVA FUNCIÓN: API Nativa de Tauri para File Drop
+        async function initializeTauriFileDrop() {
+            try {
+                console.log('🔄 Initializing Tauri native file drop...');
+
+                // Importar la API de eventos de Tauri
+                const { listen } = await import('https://unpkg.com/@tauri-apps/api@1/event');
+
+                // Escuchar eventos de file drop nativos
+                const unlisten = await listen('tauri://file-drop', async (event) => {
+                    console.log('🎯 TAURI NATIVE FILE DROP DETECTED!');
+                    console.log('📂 File drop event:', event);
+                    console.log('📂 Dropped files:', event.payload);
+
+                    // Remover efecto visual
+                    const container = document.getElementById('wordContainer');
+                    container.classList.remove('drag-over');
+
+                    try {
+                        // Verificar si hay contenido actual
+                        if (currentWords.length > 0) {
+                            if (!confirm('¿Esto reemplazará las palabras actuales, continuar?')) {
+                                console.log('👤 Usuario canceló reemplazo');
+                                return;
+                            }
+                        }
+
+                        const droppedFiles = event.payload;
+                        if (droppedFiles && droppedFiles.length > 0) {
+                            const filePath = droppedFiles[0];
+                            console.log('📄 Processing file:', filePath);
+
+                            showToast('Reading dropped file...', 'info', 2000);
+
+                            // Usar el backend de Tauri para leer el archivo
+                            console.log('🔄 Calling invoke with path:', filePath);
+                            const content = await invoke('read_seed_file', { path: filePath });
+                            console.log('✅ File content received:', content.substring(0, 100) + '...');
+
+                            const words = content.split(/\s+/).filter(word => word.length > 0);
+                            console.log('📝 Parsed words:', words.length);
+
+                            // Actualizar la interfaz
+                            currentWords = words.map(word => word.toLowerCase());
+                            editingIndex = -1;
+                            renderWords();
+                            updateValidationStatus();
+                            updateProcessButtonState();
+
+                            showToast(`Loaded ${words.length} words from dropped file`, 'success');
+                        } else {
+                            console.log('❌ No files in native drop event');
+                            throw new Error('No files detected in drop event');
+                        }
+                    } catch (error) {
+                        console.error('❌ Native file drop error:', error);
+                        showToast(`Failed to read dropped file: ${error}`, 'error');
+                    }
+                });
+
+                console.log('✅ Tauri native file drop initialized');
+
+                // Guardar el unlisten para cleanup (opcional)
+                window.tauriFileDropUnlisten = unlisten;
+
+            } catch (error) {
+                console.error('❌ Failed to initialize Tauri file drop:', error);
+                console.log('🔄 File drop will use fallback method');
+            }
         }
 
         // Word input handling
@@ -1358,45 +1422,6 @@
 
         function handleDragLeave(e) {
             e.currentTarget.classList.remove('drag-over');
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            e.currentTarget.classList.remove('drag-over');
-
-            const files = e.dataTransfer.files;
-            if (files.length > 0 && files[0].type === 'text/plain') {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const content = e.target.result.trim();
-                    const words = content.split(/\s+/).filter(word => word.length > 0);
-
-                    currentWords = words.map(word => word.toLowerCase());
-                    editingIndex = -1;
-                    renderWords();
-                    updateValidationStatus();
-                    updateProcessButtonState();
-                };
-                reader.readAsText(files[0]);
-            }
-        }
-
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (file && file.type === 'text/plain') {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const content = e.target.result.trim();
-                    const words = content.split(/\s+/).filter(word => word.length > 0);
-
-                    currentWords = words.map(word => word.toLowerCase());
-                    editingIndex = -1;
-                    renderWords();
-                    updateValidationStatus();
-                    updateProcessButtonState();
-                };
-                reader.readAsText(file);
-            }
         }
 
         // Security functions

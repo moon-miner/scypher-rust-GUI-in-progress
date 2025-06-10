@@ -59,7 +59,8 @@
         "minHeight": 600,
         "minWidth": 800,
         "decorations": true,
-        "transparent": false
+        "transparent": false,
+        "fileDropEnabled": true
       }
     ]
   }
