@@ -718,7 +718,7 @@
                     </select>
 
                     <div class="control-buttons">
-                        <button class="small-button generate" id="generateSeed">🎲 Generate</button>
+                        <button class="small-button generate" id="generateSeed">🎲 Generate New Seed</button>
                         <button class="small-button clear" id="clearInput">🗑️ Clear</button>
                         <button class="small-button" id="browseFile">📁 Browse</button>
                     </div>
@@ -880,26 +880,7 @@
             // Control events
             document.getElementById('wordCount').addEventListener('change', handleModeChange);
             document.getElementById('generateSeed').addEventListener('click', async function() {
-                if (currentWords.length > 0) {
-                    if (!confirm('¿Esto reemplazará las palabras actuales, continuar?')) {
-                        return;
-                    }
-                }
-
-                const targetCount = currentMode === 'auto' ? 12 : parseInt(currentMode);
-
-                try {
-                    const generatedPhrase = await invoke('generate_seed_phrase', { word_count: targetCount });
-                    currentWords = generatedPhrase.split(' ');
-                    editingIndex = -1;
-                    renderWords();
-                    updateValidationStatus();
-                    updateProcessButtonState();
-                    focusWordInput();
-                    showToast(`Generated ${targetCount}-word seed phrase`, 'success');
-                } catch (error) {
-                    showToast(`Failed to generate seed: ${error}`, 'error');
-                }
+                await generateNewSeed();
             });
             document.getElementById('clearInput').addEventListener('click', clearAllWords);
             document.getElementById('browseFile').addEventListener('click', handleModernBrowse);
@@ -1335,16 +1316,14 @@
                 currentMode = 'auto';
             } else {
                 selector.classList.remove('auto');
-                const targetCount = parseInt(newMode);
 
-                if (currentWords.length > targetCount) {
-                    if (confirm(`You have ${currentWords.length} words but selected ${targetCount}. This will clear extra words. Continue?`)) {
-                        currentWords = currentWords.slice(0, targetCount);
-                        renderWords();
-                    } else {
-                        e.target.value = currentMode;
-                        return;
-                    }
+                // Si hay palabras actuales, limpiar completamente sin preguntar
+                if (currentWords.length > 0) {
+                    currentWords = [];
+                    editingIndex = -1;
+                    document.getElementById('wordInput').value = '';
+                    renderWords();
+                    showToast(`Cleared words - switched to ${newMode}-word mode`, 'info', 3000);
                 }
 
                 currentMode = newMode;
@@ -1352,28 +1331,40 @@
 
             updateValidationStatus();
             updateProcessButtonState();
+            focusWordInput();
         }
 
         async function generateNewSeed() {
-            // Verificar si hay palabras actuales
-            if (currentWords.length > 0) {
-                if (!confirm('¿Esto reemplazará las palabras actuales, continuar?')) {
-                    return; // Usuario canceló
-                }
-            }
 
             const targetCount = currentMode === 'auto' ? 12 : parseInt(currentMode);
 
             try {
-                const generatedPhrase = await invoke('generate_seed_phrase', { word_count: targetCount });
+                console.log(`🎲 Generating ${targetCount}-word seed phrase...`);
+                showToast('Generating new seed phrase...', 'info', 2000);
+
+                // CORREGIDO: usar exactamente el mismo nombre que en Rust
+                const generatedPhrase = await invoke('generate_seed_phrase', {
+                    wordCount: targetCount  // ✅ CORRECTO: coincide con parameter en Rust
+                });
+
+                console.log('✅ Generated phrase:', generatedPhrase.substring(0, 50) + '...');
+
+                // Actualizar la interfaz
                 currentWords = generatedPhrase.split(' ');
                 editingIndex = -1;
                 renderWords();
-                updateValidationStatus();
+                await updateValidationStatus();
                 updateProcessButtonState();
                 focusWordInput();
+
                 showToast(`Generated ${targetCount}-word seed phrase`, 'success');
+
+                // Actualizar status bar
+                document.getElementById('statusText').textContent =
+                    `Ready • Generated ${targetCount} words • BIP39 validation enabled • Argon2id: 5 iterations, 128MB`;
+
             } catch (error) {
+                console.error('❌ Generation error:', error);
                 showToast(`Failed to generate seed: ${error}`, 'error');
             }
         }

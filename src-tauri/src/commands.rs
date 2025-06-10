@@ -182,7 +182,7 @@ pub async fn save_file_dialog() -> Result<Option<String>> {
     Ok(file.map(|f| f.path().to_string_lossy().to_string()))
 }
 
-/// Generar nueva frase semilla
+/// Generar nueva frase semilla BIP39 válida
 #[command]
 pub fn generate_seed_phrase(word_count: serde_json::Value) -> Result<String> {
     // Parsear el word_count de manera flexible
@@ -201,19 +201,22 @@ pub fn generate_seed_phrase(word_count: serde_json::Value) -> Result<String> {
         _ => return Err(SCypherError::crypto("Word count must be a number or string".to_string())),
     };
 
-    // Validar rango
+    // Validar rango de palabras válidas para BIP39
     let valid_counts = [12, 15, 18, 21, 24];
     if !valid_counts.contains(&count) {
         return Err(SCypherError::InvalidWordCount(count));
     }
 
-    // Generar entropía aleatoria
-    use rand::RngCore;
-    let entropy_bits = count * 32 / 3;
-    let entropy_bytes = entropy_bits / 8;
+    // Calcular entropía necesaria según BIP39
+    let entropy_bits = count * 32 / 3;  // 128, 160, 192, 224, 256 bits
+    let entropy_bytes = entropy_bits / 8;  // 16, 20, 24, 28, 32 bytes
+
+    // Generar entropía criptográficamente segura
     let mut entropy = vec![0u8; entropy_bytes];
+    use rand::RngCore;
     rand::thread_rng().fill_bytes(&mut entropy);
 
-    // Convertir a frase BIP39 válida
+    // Convertir entropía a frase BIP39 válida (con checksum correcto)
+    // USAR PATH COMPLETO para evitar problemas de scope
     crate::bip39::conversion::entropy_to_phrase(&entropy)
 }
