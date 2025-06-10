@@ -1,32 +1,40 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCypher GUI - Real Backend Working!</title>
+    <title>SCypher GUI v3.0</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             color: #e0e0e0;
-            margin: 0;
-            padding: 20px;
             min-height: 100vh;
+            padding: 20px;
+            overflow-y: auto;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: rgba(40, 40, 40, 0.95);
             border-radius: 12px;
             border: 1px solid #4a4a4a;
-            padding: 30px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            padding: 30px 20px 20px;
+            border-bottom: 1px solid #4a4a4a;
+            position: relative;
         }
 
         .logo {
@@ -34,52 +42,49 @@
             font-weight: 700;
             color: #ff9500;
             margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(255, 149, 0, 0.3);
         }
 
         .tagline {
             color: #888;
             font-size: 0.95em;
+            font-weight: 400;
         }
 
-        .status-banner {
-            background: rgba(16, 185, 129, 0.2);
-            border: 1px solid #10b981;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #6ee7b7;
-        }
-
-        .success-banner {
-            background: rgba(34, 197, 94, 0.2);
-            border: 1px solid #22c55e;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #4ade80;
-        }
-
-        .debug-section {
-            background: rgba(59, 130, 246, 0.2);
-            border: 1px solid #3b82f6;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-        }
-
-        .test-section {
-            background: rgba(50, 50, 50, 0.6);
+        .secure-mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(60, 60, 60, 0.8);
             border: 1px solid #555;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
+            color: #ccc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
         }
 
-        .test-title {
+        .secure-mode-toggle:hover {
+            background: rgba(80, 80, 80, 0.8);
+            color: #fff;
+        }
+
+        .secure-mode-toggle.active {
+            background: rgba(255, 149, 0, 0.2);
+            border-color: #ff9500;
+            color: #ff9500;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
             font-size: 1.1em;
             font-weight: 600;
             color: #ff9500;
@@ -89,461 +94,1313 @@
             gap: 8px;
         }
 
-        .button {
-            background: linear-gradient(135deg, #ff9500 0%, #ff7b00 100%);
-            color: white;
-            border: none;
-            padding: 10px 20px;
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #ff9500;
+            border-radius: 2px;
+        }
+
+        .input-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .word-count-selector {
+            background: rgba(60, 60, 60, 0.8);
+            border: 1px solid #555;
+            color: #e0e0e0;
+            padding: 8px 12px;
             border-radius: 6px;
+            font-size: 0.9em;
             cursor: pointer;
-            font-weight: 600;
-            margin: 5px;
-            transition: all 0.3s ease;
         }
 
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 149, 0, 0.4);
+        .word-count-selector.auto {
+            background: rgba(255, 149, 0, 0.2);
+            border-color: #ff9500;
+            color: #ff9500;
         }
 
-        .button.secondary {
+        .control-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .small-button {
             background: rgba(60, 60, 60, 0.8);
             border: 1px solid #555;
             color: #ccc;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
         }
 
-        .input, .select {
+        .small-button:hover {
+            background: rgba(80, 80, 80, 0.8);
+            color: #fff;
+        }
+
+        .small-button.generate {
+            background: linear-gradient(135deg, #ff9500 0%, #ff7b00 100%);
+            color: white;
+            border: none;
+        }
+
+        .small-button.clear {
+            background: rgba(220, 38, 38, 0.2);
+            border-color: #dc2626;
+            color: #fca5a5;
+        }
+
+        .small-button.clear:hover {
+            background: rgba(220, 38, 38, 0.3);
+            color: #fff;
+        }
+
+        .advanced-input-area {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .word-input-container {
+            min-height: 120px;
+            padding: 16px;
+            background: rgba(60, 60, 60, 0.5);
+            border: 2px solid #666;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: text;
+        }
+
+        .word-input-container:focus-within {
+            border-color: #ff9500;
+            background: rgba(60, 60, 60, 0.8);
+            box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
+        }
+
+        .word-input-container.drag-over {
+            border-color: #ff9500;
+            background: rgba(255, 149, 0, 0.1);
+        }
+
+        .word-input-container.valid {
+            border-color: #10b981;
+        }
+
+        .word-input-container.invalid {
+            border-color: #ef4444;
+        }
+
+        .words-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+            min-height: 40px;
+            align-items: flex-start;
+            align-content: flex-start;
+        }
+
+        .word-tag {
+            background: rgba(255, 149, 0, 0.15);
+            border: 1px solid rgba(255, 149, 0, 0.3);
+            color: #ff9500;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .word-tag:hover {
+            background: rgba(255, 149, 0, 0.25);
+            border-color: rgba(255, 149, 0, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .word-tag.editing {
+            background: rgba(60, 60, 60, 0.8);
+            border-color: #ff9500;
+            color: #e0e0e0;
+        }
+
+        .word-tag .word-number {
+            background: rgba(255, 149, 0, 0.3);
+            color: #ff9500;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+
+        .word-tag .delete-word {
+            background: rgba(220, 38, 38, 0.3);
+            color: #fca5a5;
+            border-radius: 50%;
+            padding: 2px 5px;
+            font-size: 0.7em;
+            cursor: pointer;
+            margin-left: 4px;
+        }
+
+        .word-tag .delete-word:hover {
+            background: rgba(220, 38, 38, 0.5);
+            color: #fff;
+        }
+
+        .word-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #e0e0e0;
+            font-size: 0.9em;
+            font-family: inherit;
+            padding: 6px 0;
+            min-width: 80px;
+            max-width: 200px;
+        }
+
+        .word-input::placeholder {
+            color: #888;
+        }
+
+        .input-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 16px;
+            transform: translateY(-50%);
+            color: #888;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+
+        .word-input-container.has-content .input-placeholder,
+        .word-input-container:focus-within .input-placeholder {
+            opacity: 0;
+            transform: translateY(-70%);
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(40, 40, 40, 0.98);
+            border: 1px solid #555;
+            border-radius: 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            margin-top: 4px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .autocomplete-dropdown.show {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .autocomplete-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.highlighted {
+            background: rgba(255, 149, 0, 0.1);
+            color: #ff9500;
+        }
+
+        .validation-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 0.9em;
+            min-height: 20px;
+        }
+
+        .status-valid {
+            color: #10b981;
+        }
+
+        .status-invalid {
+            color: #ef4444;
+        }
+
+        .status-warning {
+            color: #f59e0b;
+        }
+
+        .status-progress {
+            color: #6b7280;
+        }
+
+        .security-section {
+            background: rgba(30, 30, 30, 0.6);
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #ddd;
+        }
+
+        .input {
             width: 100%;
-            padding: 10px;
+            padding: 12px 16px;
             background: rgba(60, 60, 60, 0.5);
             border: 1px solid #555;
             border-radius: 6px;
             color: #e0e0e0;
-            margin: 10px 0;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
         }
 
-        .result {
+        .input:focus {
+            outline: none;
+            border-color: #ff9500;
+            background: rgba(60, 60, 60, 0.8);
+            box-shadow: 0 0 0 3px rgba(255, 149, 0, 0.1);
+        }
+
+        .password-input {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            padding: 4px;
+            font-size: 1.1em;
+        }
+
+        .argon2-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
             margin-top: 15px;
-            padding: 10px;
+        }
+
+        .param-display {
+            background: rgba(50, 50, 50, 0.6);
+            border: 1px solid #555;
             border-radius: 6px;
-            font-weight: 500;
+            padding: 12px 16px;
+            text-align: center;
         }
 
-        .result.success {
-            background: rgba(16, 185, 129, 0.2);
-            border: 1px solid #10b981;
-            color: #6ee7b7;
+        .param-label {
+            font-size: 0.8em;
+            color: #888;
+            margin-bottom: 4px;
         }
 
-        .result.error {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid #ef4444;
-            color: #fca5a5;
+        .param-value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #ff9500;
         }
 
-        .result.info {
-            background: rgba(59, 130, 246, 0.2);
-            border: 1px solid #3b82f6;
-            color: #93c5fd;
+        .button {
+            background: linear-gradient(135deg, #ff9500 0%, #ff7b00 100%);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+            min-width: 160px;
         }
 
-        .result.mock {
-            background: rgba(255, 193, 7, 0.2);
-            border: 1px solid #ffc107;
-            color: #ffd54f;
+        .button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 149, 0, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 12px rgba(255, 149, 0, 0.1);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(60, 60, 60, 0.5);
+            border-radius: 2px;
+            margin: 15px 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .progress-bar.show {
+            opacity: 1;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9500, #ff7b00);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .result-area {
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .result-area.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result-text {
+            font-family: 'Monaco', 'Menlo', monospace;
+            line-height: 1.6;
+            color: #e0e0e0;
+            background: rgba(20, 20, 20, 0.5);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            word-break: break-all;
+            position: relative;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .copy-button {
+            background: rgba(60, 60, 60, 0.8);
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .copy-button:hover {
+            background: rgba(80, 80, 80, 0.8);
+            color: #fff;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 30px;
+            background: rgba(30, 30, 30, 0.8);
+            border-top: 1px solid #4a4a4a;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .status-text {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .security-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4ade80;
+        }
+
+        .warning-banner {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #ffc107;
+        }
+
+        .warning-banner strong {
+            color: #ffdb4d;
+        }
+
+        .secure-hidden {
+            filter: blur(4px);
+            transition: filter 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @media (max-width: 768px) {
+            .input-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-buttons {
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🎉 SCypher GUI - PHASE 1 COMPLETE!</div>
-            <div class="tagline">Real Rust backend connected with protocol fix working</div>
+            <div class="logo">SCypher</div>
+            <div class="tagline">XOR-based BIP39 Seed Cipher v3.0</div>
+            <button class="secure-mode-toggle" id="secureMode">
+                🛡️ Secure Screen: OFF
+            </button>
         </div>
 
-        <div class="success-banner">
-            <strong>🚀 EVERYTHING WORKING!</strong><br>
-            ✅ Tauri backend connected<br>
-            ✅ Protocol fix applied and tested<br>
-            ✅ All commands functional<br>
-            <strong>Ready for Phase 2 implementation!</strong>
+        <div class="main-content" id="mainContent">
+            <div class="warning-banner">
+                <strong>⚠️ Security Notice:</strong> Only process seed phrases you own. Never share encrypted results with untrusted parties.
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    📝 Input Seed Phrase
+                </div>
+
+                <div class="input-controls">
+                    <label style="color: #ddd; font-size: 0.9em;">Mode:</label>
+                    <select class="word-count-selector auto" id="wordCount">
+                        <option value="auto">AUTO (detect)</option>
+                        <option value="12">12 words</option>
+                        <option value="15">15 words</option>
+                        <option value="18">18 words</option>
+                        <option value="21">21 words</option>
+                        <option value="24">24 words</option>
+                    </select>
+
+                    <div class="control-buttons">
+                        <button class="small-button generate" id="generateSeed">🎲 Generate</button>
+                        <button class="small-button clear" id="clearInput">🗑️ Clear</button>
+                        <button class="small-button" id="browseFile">📁 Browse</button>
+                    </div>
+                </div>
+
+                <div class="advanced-input-area">
+                    <div class="word-input-container" id="wordContainer">
+                        <div class="words-display" id="wordsDisplay"></div>
+                        <input type="text" class="word-input" id="wordInput" autocomplete="off" spellcheck="false">
+                        <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+                    </div>
+                    <div class="input-placeholder">Start typing or drag & drop a .txt file...</div>
+                    <input type="file" id="fileInput" style="display: none;" accept=".txt">
+                </div>
+
+                <div class="validation-status" id="validationStatus">
+                    <span class="status-progress">Ready to input seed phrase • AUTO mode active</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    🔐 Security Settings
+                </div>
+
+                <div class="security-section">
+                    <div class="input-group">
+                        <label class="label">Encryption Password:</label>
+                        <div class="password-input">
+                            <input type="password" class="input" id="passwordInput" placeholder="Enter a strong password">
+                            <button class="password-toggle" id="passwordToggle">👁️</button>
+                        </div>
+                    </div>
+
+                    <div class="argon2-display">
+                        <div class="param-display">
+                            <div class="param-label">Argon2id Iterations</div>
+                            <div class="param-value">5</div>
+                        </div>
+                        <div class="param-display">
+                            <div class="param-label">Memory Cost</div>
+                            <div class="param-value">128 MB</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="button" id="processButton" disabled>⏳ Enter seed phrase and password...</button>
+            </div>
+
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="result-area" id="resultArea">
+                <div class="section-title">
+                    ✅ Transformation Result
+                </div>
+                <div class="result-text" id="resultText">
+                    <!-- Result will appear here -->
+                </div>
+                <div class="result-actions">
+                    <button class="copy-button" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+                    <button class="copy-button" onclick="saveToFile()">💾 Save to File</button>
+                    <button class="copy-button" onclick="processAnother()">🔄 Process Another</button>
+                </div>
+            </div>
         </div>
 
-        <div class="debug-section" id="debug-info">
-            Loading debug information...
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: center;">
-            <button class="button secondary" onclick="switchMode()">🔄 Switch Mode</button>
-            <button class="button secondary" onclick="fullDiagnostic()">🔬 Diagnostic</button>
-            <button class="button" onclick="testAllCommands()">🧪 Test All Commands</button>
-        </div>
-
-        <div class="test-section">
-            <div class="test-title">🔗 Test 1: Backend Connection</div>
-            <button class="button" onclick="testBackend()">Test Backend Connection</button>
-            <div id="backend-status" class="result info">Ready for testing...</div>
-        </div>
-
-        <div class="test-section">
-            <div class="test-title">📝 Test 2: BIP39 Word Validation</div>
-            <input type="text" id="test-word" class="input" placeholder="Enter a word (try 'abandon')" value="abandon">
-            <button class="button" onclick="testWord()">Validate Word</button>
-            <div id="word-validation-result" class="result info">Ready for testing...</div>
-        </div>
-
-        <div class="test-section">
-            <div class="test-title">✅ Test 3: Seed Phrase Validation</div>
-            <input type="text" id="test-seed" class="input"
-                   placeholder="Enter seed phrase"
-                   value="abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about">
-            <button class="button" onclick="testSeed()">Validate Seed Phrase</button>
-            <div id="seed-validation-result" class="result info">Ready for testing...</div>
-        </div>
-
-        <div class="test-section">
-            <div class="test-title">🎲 Test 4: Seed Generation (Protocol Fix)</div>
-            <select id="word-count-select" class="select">
-                <option value="12">12 words</option>
-                <option value="15">15 words</option>
-                <option value="18">18 words</option>
-                <option value="21">21 words</option>
-                <option value="24">24 words</option>
-            </select>
-            <button class="button" onclick="testGenerate()">Generate Real Seed</button>
-            <button class="button secondary" onclick="testProtocolTypes()">🔧 Test Protocol Types</button>
-            <div id="generate-result" class="result info">Ready for testing...</div>
-        </div>
-
-        <div class="test-section">
-            <div class="test-title">📋 Test 5: Full BIP39 Wordlist</div>
-            <button class="button" onclick="testWordlist()">Get Real BIP39 Wordlist</button>
-            <div id="wordlist-result" class="result info">Ready for testing...</div>
+        <div class="status-bar">
+            <div class="status-text" id="statusText">Ready • AUTO mode • BIP39 validation enabled • Argon2id: 5 iterations, 128MB</div>
+            <div class="security-indicator">
+                <span>🛡️</span>
+                <span id="securityStatus">Secure mode ready</span>
+            </div>
         </div>
     </div>
 
     <script>
-        let useMockBackend = false;
+        // Global variables
+        let currentWords = [];
+        let currentMode = 'auto';
+        let editingIndex = -1;
+        let highlightedIndex = -1;
+        let secureMode = false;
+        let bip39WordList = [];
         let invoke = null;
         let tauriAvailable = false;
 
-        // Mock backend para fallback
-        const mockBackend = {
-            validate_bip39_word: async (args) => {
-                await new Promise(resolve => setTimeout(resolve, 200));
-                return args.word.toLowerCase() === 'abandon';
-            },
-
-            validate_seed_phrase: async (args) => {
-                return {
-                    valid: true,
-                    word_count: 12,
-                    message: "Mock validation",
-                    status: 'valid'
-                };
-            },
-
-            generate_seed_phrase: async (args) => {
-                return "mock generated seed phrase for testing";
-            },
-
-            get_bip39_wordlist: async () => {
-                return ['abandon', 'ability', 'able']; // Mock wordlist
-            }
-        };
-
-        // SOLUCIÓN PARA TAURI v1.x - Importar invoke correctamente
-        async function loadTauriInvoke() {
-            try {
-                // Método 1: Import dinámico (Tauri v1.x)
-                const { invoke: tauriInvoke } = await import('https://unpkg.com/@tauri-apps/api@1/tauri');
-                console.log('✅ Imported invoke from @tauri-apps/api');
-                return tauriInvoke;
-            } catch (e1) {
-                console.log('❌ CDN import failed, trying window access...');
-
-                try {
-                    // Método 2: Acceso directo a window.__TAURI__
-                    if (window.__TAURI__ && window.__TAURI__.invoke) {
-                        console.log('✅ Found window.__TAURI__.invoke');
-                        return window.__TAURI__.invoke;
-                    }
-
-                    // Método 3: Usar eval para importar (último recurso)
-                    const result = eval('window.__TAURI_INVOKE__ || window.__TAURI__?.tauri?.invoke');
-                    if (result) {
-                        console.log('✅ Found invoke via eval');
-                        return result;
-                    }
-                } catch (e2) {
-                    console.log('❌ Window access failed:', e2);
-                }
-
-                return null;
-            }
-        }
-
-        // Detectar y configurar Tauri con múltiples métodos
-        async function detectTauri() {
-            console.log('🔍 Detecting Tauri...');
-
-            // Intentar cargar invoke
-            const tauriInvoke = await loadTauriInvoke();
-
-            if (tauriInvoke) {
-                invoke = tauriInvoke;
-                tauriAvailable = true;
-                console.log('✅ Tauri invoke function loaded successfully');
-                return true;
-            }
-
-            console.log('❌ Failed to load Tauri invoke function');
-            return false;
-        }
-
-        // Crear función invoke
-        async function createInvokeFunction() {
-            if (useMockBackend) {
-                console.log('🎭 Using mock backend (forced)');
-                invoke = async function(cmd, args = {}) {
-                    console.log(`📤 Mock invoke: ${cmd}`, args);
-                    if (mockBackend[cmd]) {
-                        const result = await mockBackend[cmd](args);
-                        console.log(`📥 Mock response:`, result);
-                        return result;
-                    } else {
-                        throw new Error(`Mock command not implemented: ${cmd}`);
-                    }
-                };
-                return true;
-            }
-
-            const detected = await detectTauri();
-            if (detected) {
-                console.log('🔧 Using real Tauri backend');
-                useMockBackend = false;
-                return true;
-            } else {
-                console.log('❌ Tauri not available, using mock backend');
-                useMockBackend = true;
-                return createInvokeFunction();
-            }
-        }
-
-        // Actualizar información de debug
-        function updateDebugInfo() {
-            const debugElement = document.getElementById('debug-info');
-            const mode = useMockBackend ? 'MOCK' : 'REAL TAURI';
-
-            debugElement.innerHTML = `
-                <strong>🔍 BACKEND STATUS: ${mode}</strong><br>
-                • Tauri Available: ${tauriAvailable}<br>
-                • window.__TAURI__: ${!!window.__TAURI__}<br>
-                • invoke function: ${typeof invoke}<br>
-                • Mode: ${useMockBackend ? 'Mock Backend' : 'Real Tauri Backend'}<br>
-                • Protocol Fix: ✅ Applied (serde_json::Value handling)<br>
-                • Import Method: ${tauriAvailable ? 'Dynamic ES6 Import' : 'Mock Fallback'}
-            `;
-        }
-
-        // Funciones de test
-        async function testBackend() {
-            if (!invoke) {
-                updateUI('backend-status', '❌ Invoke not available', 'error');
-                return false;
-            }
-
-            try {
-                updateUI('backend-status', '🔄 Testing connection...', 'info');
-                const result = await invoke('validate_bip39_word', { word: 'abandon' });
-                const mode = useMockBackend ? '🎭 Mock' : '🔧 Real Tauri';
-                updateUI('backend-status', `✅ ${mode} backend connected: ${result}`, 'success');
-                return true;
-            } catch (error) {
-                console.error('Backend test failed:', error);
-                updateUI('backend-status', `❌ Error: ${error.message}`, 'error');
-                return false;
-            }
-        }
-
-        async function testWord() {
-            const word = document.getElementById('test-word').value.trim();
-            if (!word) {
-                updateUI('word-validation-result', '❌ Please enter a word', 'error');
-                return;
-            }
-
-            try {
-                updateUI('word-validation-result', '🔄 Validating...', 'info');
-                const isValid = await invoke('validate_bip39_word', { word });
-                const prefix = useMockBackend ? '🎭 Mock: ' : '🔧 Real: ';
-                const message = isValid ?
-                    `${prefix}✅ "${word}" is valid BIP39 word` :
-                    `${prefix}❌ "${word}" is not a valid BIP39 word`;
-                updateUI('word-validation-result', message, isValid ? 'success' : 'error');
-            } catch (error) {
-                updateUI('word-validation-result', `❌ Error: ${error.message}`, 'error');
-            }
-        }
-
-        async function testSeed() {
-            const phrase = document.getElementById('test-seed').value.trim();
-            if (!phrase) {
-                updateUI('seed-validation-result', '❌ Please enter a seed phrase', 'error');
-                return;
-            }
-
-            try {
-                updateUI('seed-validation-result', '🔄 Validating...', 'info');
-                const validation = await invoke('validate_seed_phrase', { phrase });
-                const prefix = useMockBackend ? '🎭 Mock: ' : '🔧 Real: ';
-
-                if (validation.valid) {
-                    updateUI('seed-validation-result', `${prefix}✅ ${validation.message}`, 'success');
-                } else {
-                    updateUI('seed-validation-result', `${prefix}❌ ${validation.message}`, 'error');
-                }
-            } catch (error) {
-                updateUI('seed-validation-result', `❌ Error: ${error.message}`, 'error');
-            }
-        }
-
-        async function testGenerate() {
-            const wordCountSelect = document.getElementById('word-count-select');
-            const wordCount = wordCountSelect.value;
-
-            try {
-                updateUI('generate-result', '🔄 Generating...', 'info');
-                console.log('🎲 Generating with word_count:', wordCount, typeof wordCount);
-
-                const result = await invoke('generate_seed_phrase', { word_count: wordCount });
-                const prefix = useMockBackend ? '🎭 Mock: ' : '🔧 Real: ';
-                const wordArray = result.split(' ');
-                updateUI('generate-result', `${prefix}✅ Generated ${wordArray.length} words: ${result}`, 'success');
-            } catch (error) {
-                console.error('Generation failed:', error);
-                updateUI('generate-result', `❌ Error: ${error.message}`, 'error');
-            }
-        }
-
-        async function testWordlist() {
-            try {
-                updateUI('wordlist-result', '🔄 Fetching wordlist...', 'info');
-                const wordlist = await invoke('get_bip39_wordlist');
-                const prefix = useMockBackend ? '🎭 Mock: ' : '🔧 Real: ';
-                updateUI('wordlist-result', `${prefix}✅ Got ${wordlist.length} BIP39 words from backend`, 'success');
-                console.log('First 10 words:', wordlist.slice(0, 10));
-            } catch (error) {
-                updateUI('wordlist-result', `❌ Error: ${error.message}`, 'error');
-            }
-        }
-
-        async function testProtocolTypes() {
-            try {
-                updateUI('generate-result', '🧪 Testing protocol types...', 'info');
-
-                // Test con string
-                console.log('Testing string "12"...');
-                const resultString = await invoke('generate_seed_phrase', { word_count: "12" });
-                console.log('✅ String "12" result:', resultString.split(' ').length, 'words');
-
-                // Test con número
-                console.log('Testing number 15...');
-                const resultNumber = await invoke('generate_seed_phrase', { word_count: 15 });
-                console.log('✅ Number 15 result:', resultNumber.split(' ').length, 'words');
-
-                const prefix = useMockBackend ? '🎭 Mock: ' : '🔧 Real: ';
-                updateUI('generate-result', `${prefix}✅ Protocol fix verified! String and number both work`, 'success');
-            } catch (error) {
-                console.error('Protocol test failed:', error);
-                updateUI('generate-result', `❌ Protocol test failed: ${error.message}`, 'error');
-            }
-        }
-
-        async function testAllCommands() {
-            console.log('🧪 Running comprehensive test suite...');
-
-            console.log('1/5 Testing backend connection...');
-            await testBackend();
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            console.log('2/5 Testing word validation...');
-            await testWord();
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            console.log('3/5 Testing seed validation...');
-            await testSeed();
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            console.log('4/5 Testing seed generation...');
-            await testGenerate();
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            console.log('5/5 Testing wordlist fetch...');
-            await testWordlist();
-
-            console.log('✅ All tests completed successfully!');
-        }
-
-        async function switchMode() {
-            useMockBackend = !useMockBackend;
-            console.log(`🔄 Switching to ${useMockBackend ? 'Mock' : 'Real'} backend`);
-            await createInvokeFunction();
-            updateDebugInfo();
-            testBackend();
-        }
-
-        function fullDiagnostic() {
-            console.log('=== FULL DIAGNOSTIC ===');
-            console.log('window.__TAURI__:', window.__TAURI__);
-            console.log('window.invoke:', window.invoke);
-            console.log('Tauri available:', tauriAvailable);
-            console.log('Current mode:', useMockBackend ? 'Mock' : 'Real');
-            console.log('invoke function type:', typeof invoke);
-            console.log('invoke function:', invoke);
-
-            updateDebugInfo();
-        }
-
-        function updateUI(elementId, message, type) {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.textContent = message;
-                element.className = `result ${type}`;
-            }
-        }
-
-        // Inicialización
+        // Initialize application
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Initializing SCypher GUI Phase 1...');
+            console.log('🚀 SCypher GUI v3.0 initializing...');
 
             try {
-                await createInvokeFunction();
-                console.log('✅ Backend initialized successfully');
-                updateDebugInfo();
+                // Load BIP39 wordlist from backend
+                await initializeTauri();
+                bip39WordList = await invoke('get_bip39_wordlist');
+                console.log(`Loaded ${bip39WordList.length} BIP39 words from backend`);
 
-                // Test automático
-                setTimeout(async () => {
-                    console.log('🧪 Running initial backend test...');
-                    await testBackend();
-                }, 1000);
+                // Initialize event listeners
+                initializeEventListeners();
+                updateValidationStatus();
+                updateProcessButtonState();
 
+                console.log('✅ Application initialized successfully');
             } catch (error) {
-                console.error('❌ Initialization failed:', error);
-                updateUI('backend-status', `❌ Init failed: ${error.message}`, 'error');
+                console.error('Failed to initialize:', error);
+                alert('Failed to initialize application. Please restart.');
             }
         });
 
-        // Exportar funciones
-        window.testBackend = testBackend;
-        window.testWord = testWord;
-        window.testSeed = testSeed;
-        window.testGenerate = testGenerate;
-        window.testWordlist = testWordlist;
-        window.testProtocolTypes = testProtocolTypes;
-        window.testAllCommands = testAllCommands;
-        window.switchMode = switchMode;
-        window.fullDiagnostic = fullDiagnostic;
+        // Initialize Tauri connection
+        async function initializeTauri() {
+            try {
+                const { invoke: tauriInvoke } = await import('https://unpkg.com/@tauri-apps/api@1/tauri');
+                invoke = tauriInvoke;
+                tauriAvailable = true;
+                console.log('✅ Tauri backend connected');
+            } catch (error) {
+                console.error('❌ Failed to connect to Tauri backend:', error);
+                throw new Error('Tauri backend not available');
+            }
+        }
+
+        // Event listener initialization
+        function initializeEventListeners() {
+            // Word input events
+            const wordInput = document.getElementById('wordInput');
+            wordInput.addEventListener('input', handleWordInput);
+            wordInput.addEventListener('keydown', handleKeyDown);
+            wordInput.addEventListener('blur', handleInputBlur);
+
+            // Container events
+            const container = document.getElementById('wordContainer');
+            container.addEventListener('click', focusWordInput);
+            container.addEventListener('dragover', handleDragOver);
+            container.addEventListener('dragleave', handleDragLeave);
+            container.addEventListener('drop', handleDrop);
+
+            // Control events
+            document.getElementById('wordCount').addEventListener('change', handleModeChange);
+            document.getElementById('generateSeed').addEventListener('click', generateNewSeed);
+            document.getElementById('clearInput').addEventListener('click', clearAllWords);
+            document.getElementById('browseFile').addEventListener('click', () => document.getElementById('fileInput').click());
+            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+            // Security events
+            document.getElementById('passwordToggle').addEventListener('click', () => togglePasswordVisibility('passwordInput', document.getElementById('passwordToggle')));
+            document.getElementById('passwordInput').addEventListener('input', updateProcessButtonState);
+            document.getElementById('secureMode').addEventListener('click', toggleSecureMode);
+
+            // Process button
+            document.getElementById('processButton').addEventListener('click', processSeed);
+
+            // Autocomplete events
+            document.getElementById('autocompleteDropdown').addEventListener('click', handleAutocompleteClick);
+        }
+
+        // Word input handling
+        function handleWordInput(e) {
+            const value = e.target.value.trim();
+
+            if (value.includes(' ')) {
+                const words = value.split(/\s+/).filter(word => word.length > 0);
+                if (words.length > 1) {
+                    for (const word of words) {
+                        if (validateSingleWord(word)) {
+                            addWord(word);
+                        }
+                    }
+                    e.target.value = '';
+                    hideAutocomplete();
+                    return;
+                }
+                if (words.length === 1 && validateSingleWord(words[0])) {
+                    addWord(words[0]);
+                    e.target.value = '';
+                    hideAutocomplete();
+                    return;
+                }
+            }
+
+            if (value.length > 0) {
+                showAutocomplete(value);
+            } else {
+                hideAutocomplete();
+            }
+
+            updateContainerState();
+        }
+
+        // Key handling for autocomplete navigation
+        function handleKeyDown(e) {
+            const input = e.target;
+            const dropdown = document.getElementById('autocompleteDropdown');
+            const items = dropdown.querySelectorAll('.autocomplete-item');
+
+            switch (e.key) {
+                case 'Enter':
+                    e.preventDefault();
+                    if (highlightedIndex >= 0 && items[highlightedIndex]) {
+                        selectAutocompleteItem(items[highlightedIndex]);
+                    } else if (input.value.trim()) {
+                        const word = input.value.trim();
+                        if (validateSingleWord(word)) {
+                            addWord(word);
+                            input.value = '';
+                            hideAutocomplete();
+                        }
+                    }
+                    break;
+
+                case 'Tab':
+                    if (items.length === 1) {
+                        e.preventDefault();
+                        selectAutocompleteItem(items[0]);
+                    }
+                    break;
+
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (items.length > 0) {
+                        highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+                        updateAutocompleteHighlight(items);
+                    }
+                    break;
+
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (items.length > 0) {
+                        highlightedIndex = Math.max(highlightedIndex - 1, 0);
+                        updateAutocompleteHighlight(items);
+                    }
+                    break;
+
+                case 'Escape':
+                    hideAutocomplete();
+                    break;
+
+                case 'Backspace':
+                    if (input.value === '' && currentWords.length > 0) {
+                        e.preventDefault();
+                        editLastWord();
+                    }
+                    break;
+            }
+        }
+
+        // Input blur handling
+        function handleInputBlur() {
+            setTimeout(() => {
+                if (!document.querySelector('.autocomplete-dropdown:hover')) {
+                    hideAutocomplete();
+                }
+            }, 150);
+        }
+
+        // Autocomplete functions
+        function showAutocomplete(query) {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            const matches = bip39WordList.filter(word =>
+                word.toLowerCase().startsWith(query.toLowerCase())
+            ).slice(0, 8);
+
+            if (matches.length === 0) {
+                hideAutocomplete();
+                return;
+            }
+
+            dropdown.innerHTML = matches.map((word, index) => `
+                <div class="autocomplete-item" data-word="${word}" data-index="${index}">
+                    <span class="word-text">${word}</span>
+                    <span class="word-hint">${word.length} chars</span>
+                </div>
+            `).join('');
+
+            highlightedIndex = -1;
+            dropdown.classList.add('show');
+        }
+
+        function hideAutocomplete() {
+            const dropdown = document.getElementById('autocompleteDropdown');
+            dropdown.classList.remove('show');
+            highlightedIndex = -1;
+        }
+
+        function updateAutocompleteHighlight(items) {
+            items.forEach((item, index) => {
+                item.classList.toggle('highlighted', index === highlightedIndex);
+            });
+        }
+
+        function handleAutocompleteClick(e) {
+            const item = e.target.closest('.autocomplete-item');
+            if (item) {
+                selectAutocompleteItem(item);
+            }
+        }
+
+        function selectAutocompleteItem(item) {
+            const word = item.dataset.word;
+            addWord(word);
+            document.getElementById('wordInput').value = '';
+            hideAutocomplete();
+        }
+
+        // Word management functions
+        function addWord(word) {
+            if (editingIndex >= 0) {
+                currentWords[editingIndex] = word.toLowerCase();
+                editingIndex = -1;
+            } else {
+                currentWords.push(word.toLowerCase());
+            }
+            renderWords();
+            updateValidationStatus();
+            updateProcessButtonState();
+            focusWordInput();
+        }
+
+        function editLastWord() {
+            if (currentWords.length > 0) {
+                const lastWord = currentWords[currentWords.length - 1];
+                currentWords.pop();
+                document.getElementById('wordInput').value = lastWord;
+                editingIndex = -1;
+                renderWords();
+                updateValidationStatus();
+                updateProcessButtonState();
+                focusWordInput();
+            }
+        }
+
+        function editWordAtIndex(index) {
+            if (index >= 0 && index < currentWords.length) {
+                const word = currentWords[index];
+                document.getElementById('wordInput').value = word;
+                editingIndex = index;
+                focusWordInput();
+            }
+        }
+
+        function deleteWordAtIndex(index) {
+            if (index >= 0 && index < currentWords.length) {
+                currentWords.splice(index, 1);
+                renderWords();
+                updateValidationStatus();
+                updateProcessButtonState();
+                focusWordInput();
+            }
+        }
+
+        function renderWords() {
+            const display = document.getElementById('wordsDisplay');
+            display.innerHTML = currentWords.map((word, index) => `
+                <div class="word-tag ${editingIndex === index ? 'editing' : ''}"
+                     onclick="editWordAtIndex(${index})"
+                     data-index="${index}">
+                    <span class="word-number">${index + 1}</span>
+                    <span>${word}</span>
+                    <span class="delete-word" onclick="event.stopPropagation(); deleteWordAtIndex(${index})">×</span>
+                </div>
+            `).join('');
+
+            updateContainerState();
+        }
+
+        function updateContainerState() {
+            const container = document.getElementById('wordContainer');
+            const hasContent = currentWords.length > 0 || document.getElementById('wordInput').value.length > 0;
+            container.classList.toggle('has-content', hasContent);
+        }
+
+        // Validation functions
+        function validateSingleWord(word) {
+            return bip39WordList.includes(word.toLowerCase());
+        }
+
+        async function validateCurrentPhrase() {
+            const wordCount = currentWords.length;
+
+            if (currentMode === 'auto') {
+                const validCounts = [12, 15, 18, 21, 24];
+
+                if (wordCount === 0) {
+                    return { valid: false, status: 'empty', message: 'Ready to input seed phrase • AUTO mode active' };
+                }
+
+                if (!validCounts.includes(wordCount)) {
+                    return {
+                        valid: false,
+                        status: 'progress',
+                        message: `${wordCount} words entered • Continue to reach 12, 15, 18, 21, or 24 words`
+                    };
+                }
+
+                // Use backend validation for complete phrase
+                const phrase = currentWords.join(' ');
+                try {
+                    const validation = await invoke('validate_seed_phrase', { phrase });
+                    return {
+                        valid: validation.valid,
+                        status: validation.status,
+                        message: validation.message
+                    };
+                } catch (error) {
+                    return {
+                        valid: false,
+                        status: 'invalid',
+                        message: `Validation error: ${error}`
+                    };
+                }
+            }
+
+            const targetCount = parseInt(currentMode);
+            if (wordCount < targetCount) {
+                return {
+                    valid: false,
+                    status: 'progress',
+                    message: `${wordCount}/${targetCount} words entered`
+                };
+            }
+
+            if (wordCount > targetCount) {
+                return {
+                    valid: false,
+                    status: 'invalid',
+                    message: `Too many words: ${wordCount}/${targetCount}`
+                };
+            }
+
+            // Use backend validation for fixed mode
+            const phrase = currentWords.join(' ');
+            try {
+                const validation = await invoke('validate_seed_phrase', { phrase });
+                return {
+                    valid: validation.valid,
+                    status: validation.status,
+                    message: validation.message
+                };
+            } catch (error) {
+                return {
+                    valid: false,
+                    status: 'invalid',
+                    message: `Validation error: ${error}`
+                };
+            }
+        }
+
+        async function updateValidationStatus() {
+            const container = document.getElementById('wordContainer');
+            const statusElement = document.getElementById('validationStatus');
+            const validation = await validateCurrentPhrase();
+
+            container.className = 'word-input-container';
+            if (validation.status === 'valid') {
+                container.classList.add('valid');
+            } else if (validation.status === 'invalid') {
+                container.classList.add('invalid');
+            }
+
+            const statusClass = validation.status === 'valid' ? 'status-valid' :
+                               validation.status === 'invalid' ? 'status-invalid' :
+                               validation.status === 'progress' ? 'status-progress' : 'status-progress';
+
+            statusElement.innerHTML = `<span class="${statusClass}">${validation.message}</span>`;
+
+            return validation;
+        }
+
+        function updateProcessButtonState() {
+            validateCurrentPhrase().then(validation => {
+                const passwordInput = document.getElementById('passwordInput');
+                const processButton = document.getElementById('processButton');
+
+                const hasValidSeed = validation.valid;
+                const hasPassword = passwordInput.value.length >= 8;
+
+                processButton.disabled = !(hasValidSeed && hasPassword);
+
+                if (hasValidSeed && hasPassword) {
+                    processButton.textContent = '🔄 Process Seed Phrase';
+                } else if (!hasValidSeed) {
+                    processButton.textContent = '⏳ Complete valid seed phrase...';
+                } else {
+                    processButton.textContent = '⏳ Enter password (min 8 chars)...';
+                }
+            });
+        }
+
+        // Control functions
+        function handleModeChange(e) {
+            const newMode = e.target.value;
+            const selector = e.target;
+
+            if (newMode === 'auto') {
+                selector.classList.add('auto');
+                currentMode = 'auto';
+            } else {
+                selector.classList.remove('auto');
+                const targetCount = parseInt(newMode);
+
+                if (currentWords.length > targetCount) {
+                    if (confirm(`You have ${currentWords.length} words but selected ${targetCount}. This will clear extra words. Continue?`)) {
+                        currentWords = currentWords.slice(0, targetCount);
+                        renderWords();
+                    } else {
+                        e.target.value = currentMode;
+                        return;
+                    }
+                }
+
+                currentMode = newMode;
+            }
+
+            updateValidationStatus();
+            updateProcessButtonState();
+        }
+
+        async function generateNewSeed() {
+            const targetCount = currentMode === 'auto' ? 12 : parseInt(currentMode);
+
+            try {
+                const generatedPhrase = await invoke('generate_seed_phrase', { word_count: targetCount });
+                currentWords = generatedPhrase.split(' ');
+                editingIndex = -1;
+                renderWords();
+                updateValidationStatus();
+                updateProcessButtonState();
+                focusWordInput();
+            } catch (error) {
+                alert(`Failed to generate seed: ${error}`);
+            }
+        }
+
+        function clearAllWords() {
+            currentWords = [];
+            editingIndex = -1;
+            document.getElementById('wordInput').value = '';
+            renderWords();
+            hideAutocomplete();
+            updateValidationStatus();
+            updateProcessButtonState();
+            focusWordInput();
+        }
+
+        function focusWordInput() {
+            setTimeout(() => {
+                document.getElementById('wordInput').focus();
+            }, 0);
+        }
+
+        // File handling
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'text/plain') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result.trim();
+                    const words = content.split(/\s+/).filter(word => word.length > 0);
+
+                    currentWords = words.map(word => word.toLowerCase());
+                    editingIndex = -1;
+                    renderWords();
+                    updateValidationStatus();
+                    updateProcessButtonState();
+                };
+                reader.readAsText(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file && file.type === 'text/plain') {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result.trim();
+                    const words = content.split(/\s+/).filter(word => word.length > 0);
+
+                    currentWords = words.map(word => word.toLowerCase());
+                    editingIndex = -1;
+                    renderWords();
+                    updateValidationStatus();
+                    updateProcessButtonState();
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Security functions
+        function togglePasswordVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                button.textContent = '👁️';
+            }
+        }
+
+        function toggleSecureMode() {
+            secureMode = !secureMode;
+            const button = document.getElementById('secureMode');
+            const mainContent = document.getElementById('mainContent');
+            const securityStatus = document.getElementById('securityStatus');
+
+            if (secureMode) {
+                button.textContent = '🛡️ Secure Screen: ON';
+                button.classList.add('active');
+                mainContent.classList.add('secure-hidden');
+                securityStatus.textContent = 'Secure mode active - content hidden';
+            } else {
+                button.textContent = '🛡️ Secure Screen: OFF';
+                button.classList.remove('active');
+                mainContent.classList.remove('secure-hidden');
+                securityStatus.textContent = 'Secure mode ready';
+            }
+        }
+
+        // Processing functions - FUNCIÓN CORREGIDA CON PARÁMETROS CORRECTOS
+        async function processSeed() {
+            const phrase = currentWords.join(' ');
+            const password = document.getElementById('passwordInput').value;
+
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const resultArea = document.getElementById('resultArea');
+            const statusText = document.getElementById('statusText');
+            const processButton = document.getElementById('processButton');
+
+            processButton.disabled = true;
+            processButton.textContent = '⏳ Processing...';
+
+            progressBar.classList.add('show');
+            progressFill.style.width = '0%';
+            statusText.textContent = 'Converting seed to binary representation...';
+
+            try {
+                // Progress animation paso 1
+                progressFill.style.width = '20%';
+                statusText.textContent = 'Deriving keystream with Argon2id (5 iterations, 128MB)...';
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                // Progress animation paso 2
+                progressFill.style.width = '60%';
+                statusText.textContent = 'Applying XOR transformation...';
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                // LLAMADA AL BACKEND CON PARÁMETROS CORREGIDOS
+                console.log('🔄 Calling backend with correct parameters...');
+
+                const result = await invoke('transform_seed_phrase', {
+                    phrase: phrase,
+                    password: password,
+                    iterations: 5,
+                    memoryCost: 131072  // ← CAMBIADO: memoryCost (camelCase) en lugar de memory_cost
+                });
+
+                console.log('✅ Backend response:', result);
+
+                // Progress animation paso 3
+                progressFill.style.width = '85%';
+                statusText.textContent = 'Recalculating BIP39 checksum...';
+                await new Promise(resolve => setTimeout(resolve, 400));
+
+                // Progress animation paso 4
+                progressFill.style.width = '100%';
+                statusText.textContent = 'Finalizing transformation...';
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                // MANEJO DE RESPUESTA
+                if (result.success && result.result) {
+                    // Mostrar resultado exitoso
+                    document.getElementById('resultText').textContent = result.result;
+                    progressBar.classList.remove('show');
+                    resultArea.classList.add('show');
+                    statusText.textContent = `Ready • Transformation completed • ${currentWords.length} words processed`;
+                    processButton.disabled = false;
+                    processButton.textContent = '🔄 Process Another';
+
+                    console.log('✅ Transformation completed successfully');
+                } else {
+                    // Error en el resultado
+                    throw new Error(result.error || 'Unknown error from backend');
+                }
+
+            } catch (error) {
+                console.error('❌ Processing error:', error);
+
+                // Mostrar error al usuario
+                alert(`Processing failed: ${error.message || error}`);
+
+                // Reset UI state
+                progressBar.classList.remove('show');
+                processButton.disabled = false;
+                processButton.textContent = '🔄 Process Seed Phrase';
+                statusText.textContent = 'Ready • Error occurred during processing';
+            }
+        }
+
+        // Result actions
+        async function copyToClipboard() {
+            const resultText = document.getElementById('resultText').textContent;
+            try {
+                await navigator.clipboard.writeText(resultText);
+                console.log('Result copied to clipboard');
+            } catch (error) {
+                console.error('Failed to copy to clipboard:', error);
+            }
+        }
+
+        function saveToFile() {
+            const resultText = document.getElementById('resultText').textContent;
+            const blob = new Blob([resultText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'scypher_result.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function processAnother() {
+            // Clear result and reset UI
+            document.getElementById('resultArea').classList.remove('show');
+            clearAllWords();
+            document.getElementById('passwordInput').value = '';
+            updateProcessButtonState();
+            document.getElementById('statusText').textContent = 'Ready • AUTO mode • BIP39 validation enabled • Argon2id: 5 iterations, 128MB';
+        }
+
+        // Global exports
+        window.editWordAtIndex = editWordAtIndex;
+        window.deleteWordAtIndex = deleteWordAtIndex;
+        window.copyToClipboard = copyToClipboard;
+        window.saveToFile = saveToFile;
+        window.processAnother = processAnother;
     </script>
 </body>
 </html>

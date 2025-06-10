@@ -22,7 +22,8 @@
       "dialog": {
         "all": false,
         "open": true,
-        "save": true
+        "save": true,
+        "message": true
       },
       "clipboard": {
         "all": true
