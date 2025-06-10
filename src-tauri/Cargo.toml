@@ -7,9 +7,10 @@ edition = "2021"
 tauri-build = { version = "1.5", features = [] }
 
 [dependencies]
-tauri = { version = "1.8", features = [ "dialog-message", "dialog-open", "fs-read-file", "fs-exists", "clipboard-all", "dialog-save", "fs-write-file"] }
+tauri = { version = "1.8", features = [ "dialog-save", "dialog-open", "dialog-confirm", "dialog-message", "fs-read-file", "fs-exists", "clipboard-all", "fs-write-file"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+rfd = "0.14"
 
 # Tus dependencias existentes de SCypher
 clap = "4.0"

@@ -152,23 +152,37 @@ pub fn save_result_file(content: String, path: String) -> Result<()> {
     Ok(())
 }
 
-/// Abrir diálogo de archivo (implementación simple para Tauri v1)
+/// Abrir diálogo moderno de archivo (usa XDG Portal en Linux)
 #[command]
-pub fn open_file_dialog() -> Result<Option<String>> {
-    // Implementación simple que retorna None por ahora
-    // Los diálogos los implementaremos en la Fase 3
-    Ok(None)
+pub async fn open_file_dialog() -> Result<Option<String>> {
+    use rfd::AsyncFileDialog;
+
+    let file = AsyncFileDialog::new()
+        .add_filter("Text files", &["txt"])
+        .add_filter("All files", &["*"])
+        .set_title("Select seed phrase file")
+        .pick_file()
+        .await;
+
+    Ok(file.map(|f| f.path().to_string_lossy().to_string()))
 }
 
-/// Abrir diálogo de guardar archivo (implementación simple para Tauri v1)
+/// Abrir diálogo moderno de guardar archivo (usa XDG Portal en Linux)
 #[command]
-pub fn save_file_dialog() -> Result<Option<String>> {
-    // Implementación simple que retorna None por ahora
-    // Los diálogos los implementaremos en la Fase 3
-    Ok(None)
+pub async fn save_file_dialog() -> Result<Option<String>> {
+    use rfd::AsyncFileDialog;
+
+    let file = AsyncFileDialog::new()
+        .add_filter("Text files", &["txt"])
+        .set_file_name("scypher_result.txt")
+        .set_title("Save transformation result")
+        .save_file()
+        .await;
+
+    Ok(file.map(|f| f.path().to_string_lossy().to_string()))
 }
 
-/// Generar nueva frase semilla - Acepta tanto String como usize
+/// Generar nueva frase semilla
 #[command]
 pub fn generate_seed_phrase(word_count: serde_json::Value) -> Result<String> {
     // Parsear el word_count de manera flexible
@@ -193,15 +207,13 @@ pub fn generate_seed_phrase(word_count: serde_json::Value) -> Result<String> {
         return Err(SCypherError::InvalidWordCount(count));
     }
 
-    // Calcular bits de entropía según BIP39
-    let entropy_bits = match count {
-        12 => 128,
-        15 => 160,
-        18 => 192,
-        21 => 224,
-        24 => 256,
-        _ => return Err(SCypherError::InvalidWordCount(count)),
-    };
+    // Generar entropía aleatoria
+    use rand::RngCore;
+    let entropy_bits = count * 32 / 3;
+    let entropy_bytes = entropy_bits / 8;
+    let mut entropy = vec![0u8; entropy_bytes];
+    rand::thread_rng().fill_bytes(&mut entropy);
 
-    crate::bip39::conversion::generate_seed_phrase(entropy_bits)
+    // Convertir a frase BIP39 válida
+    crate::bip39::conversion::entropy_to_phrase(&entropy)
 }
