@@ -59,6 +59,47 @@ This document provides a comprehensive cryptographic security analysis of the mu
 - **Verification**: Compatible with MetaMask and major EVM wallets
 - Address: `0x9858EfFD232B4033E47d90003D41EC34EcaEda94` (same as Ethereum) ✓
 
+### ✅ BIP39 Passphrase Support Verification
+
+**Test Configuration**: Same BIP39 official test vector with passphrase "test"
+
+**Bitcoin (BIP44 Legacy)**
+- **Source**: Ian Coleman BIP39 Tool with passphrase "test"
+- **Verification**: Compatible with hardware wallets supporting BIP39 passphrase
+- Address: `1GG6E1WqKKhjBqtmEaKUKYefKgiDR4Wff6` ✓
+
+**Ethereum**
+- **Source**: Ian Coleman BIP39 Tool with passphrase "test"
+- **Verification**: Compatible with MetaMask and major Ethereum wallets with passphrase support
+- Address: `0xB560762fa35eFD20DF74b2cdEeB49D7A975fF99b` ✓
+
+**TRON**
+- **Source**: Ian Coleman BIP39 Tool with passphrase "test"
+- **Verification**: Compatible with TronLink and major TRON wallets with passphrase support
+- Address: `THuKukbDjhaKnRNboYmZyUJjYP9jQzqtWj` ✓
+
+**Litecoin**
+- **Source**: Ian Coleman BIP39 Tool with passphrase "test"
+- **Verification**: Compatible with Core wallet and major Litecoin wallets with passphrase support
+- Address: `Lc78DL6zHtfPzsPV6WkWhCmfsFmP3MRXCd` ✓
+
+**Dogecoin**
+- **Source**: Ian Coleman BIP39 Tool with passphrase "test"
+- **Verification**: Compatible with Core wallet and major Dogecoin wallets with passphrase support
+- Address: `DMjZienrvG6ygQ64oDUemeaaKw3NHHjcZb` ✓
+
+**BSC/Polygon**
+- **Source**: Ian Coleman BIP39 Tool with passphrase "test" (EVM-compatible)
+- **Verification**: Compatible with MetaMask and major EVM wallets with passphrase support
+- Address: `0xB560762fa35eFD20DF74b2cdEeB49D7A975fF99b` (same as Ethereum) ✓
+
+**Ergo**
+- **Source**: SATERGO wallet with passphrase "test" (only Ergo wallet supporting BIP39 passphrase)
+- **Verification**: Official SATERGO wallet - the only major Ergo wallet with passphrase support
+- Address: `9hqHAeSrCtq8p5WP8tPokBBeiC1uh6Vp42eRwvoNfaQYT1kaa6X` ✓
+
+**Passphrase Differentiation Verification**: All networks generate different addresses with vs without passphrase, confirming proper BIP39 passphrase implementation and entropy isolation.
+
 ### ⚪ Format-Verified (No Official Test Vectors Available)
 
 **Cardano**
@@ -81,17 +122,21 @@ To independently verify these addresses, users can:
 
 **Using Ian Coleman BIP39 Tool** (https://iancoleman.io/bip39/):
 1. Enter mnemonic: `abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about`
-2. Leave passphrase empty (for standard addresses)  
+2. Leave passphrase empty (for standard addresses) OR enter "test" (for passphrase addresses)
 3. Select the desired cryptocurrency from the coin dropdown
 4. Compare generated addresses with the ones listed above
 
 **Alternative Tools:**
-- **Electrum** (Bitcoin): Import the seed phrase and verify addresses
-- **MetaMask** (Ethereum/BSC/Polygon): Import seed phrase and verify addresses  
-- **TronLink** (TRON): Import seed phrase and verify addresses
-- **Core Wallet** (Dogecoin/Litecoin): Import seed phrase and verify addresses
+- **Electrum** (Bitcoin): Import the seed phrase and verify addresses (supports BIP39 passphrase)
+- **MetaMask** (Ethereum/BSC/Polygon): Import seed phrase and verify addresses (supports BIP39 passphrase)
+- **TronLink** (TRON): Import seed phrase and verify addresses (supports BIP39 passphrase)
+- **Core Wallet** (Dogecoin/Litecoin): Import seed phrase and verify addresses (supports BIP39 passphrase)
 
 ### For Networks with Format-Only Verification:
+
+**Ergo:**
+- **SATERGO Wallet** (https://satergo.com/): Import seed phrase and verify address (only Ergo wallet with BIP39 passphrase support)
+- Expected path: `m/44'/429'/0'/0/0`
 
 **Cardano:**
 - **Eternl Wallet** (https://eternl.io/): Import seed phrase and verify address format
@@ -106,7 +151,8 @@ To independently verify these addresses, users can:
 1. **Never use real funds** with the test seed phrase `abandon abandon...`
 2. **Always verify** in testnet mode when possible
 3. **Cross-reference** with multiple tools for additional confidence
-4. **Report discrepancies** if any addresses don't match the documented values
+4. **Test both scenarios**: without passphrase and with passphrase "test"
+5. **Report discrepancies** if any addresses don't match the documented values
 
 This verification methodology ensures complete transparency and allows independent confirmation of address derivation accuracy across all supported networks.
 
