@@ -1,0 +1,11 @@
+error[E0599]: no method named `map_err` found for struct `ed25519_dalek::SigningKey` in the current scope
+   --> src/addresses.rs:773:14
+    |
+771 |           let signing_key = Ed25519SigningKey::from_bytes(private_key_bytes.try_into()
+    |  ___________________________-
+772 | |             .map_err(|e| SCypherError::crypto(format!("Invalid Solana private key: {:?}", e)))?)
+773 | |             .map_err(|e| SCypherError::crypto(format!("Ed25519 signing key creation failed: {}", e)))?;
+    | |             -^^^^^^^ method not found in `SigningKey`
+    | |_____________|
+    |
+
