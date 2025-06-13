@@ -313,11 +313,11 @@ mod tests {
 
     #[test]
     fn test_hex_conversion() {
-        let entropy = vec![0xDE, 0xAD, 0xBE, 0xEF];
+        let entropy = vec![0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE, 0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE];
         let phrase = entropy_to_phrase(&entropy).unwrap();
         let hex = phrase_to_hex(&phrase).unwrap();
 
-        assert_eq!(hex, "deadbeef");
+        assert_eq!(hex, "deadbeefcafebabedeadbeefcafebabe");
 
         let phrase_from_hex = hex_to_phrase(&hex).unwrap();
         assert_eq!(phrase, phrase_from_hex);
