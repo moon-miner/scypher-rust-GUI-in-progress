@@ -149,10 +149,9 @@ To independently verify these addresses, users can:
 ### Verification Protocol:
 
 1. **Never use real funds** with the test seed phrase `abandon abandon...`
-2. **Always verify** in testnet mode when possible
-3. **Cross-reference** with multiple tools for additional confidence
-4. **Test both scenarios**: without passphrase and with passphrase "test"
-5. **Report discrepancies** if any addresses don't match the documented values
+2. **Cross-reference** with multiple tools for additional confidence
+3. **Test both scenarios**: without passphrase and with passphrase "test"
+4. **Report discrepancies** if any addresses don't match the documented values
 
 This verification methodology ensures complete transparency and allows independent confirmation of address derivation accuracy across all supported networks.
 
