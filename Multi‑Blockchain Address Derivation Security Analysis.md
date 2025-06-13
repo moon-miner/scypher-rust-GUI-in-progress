@@ -129,7 +129,7 @@ This document provides a comprehensive cryptographic security analysis of the mu
 
 ### Ergo
 
-**Security Rating: 10/10**
+**Security Rating: 9/10**
 
 **Strengths:**
 
