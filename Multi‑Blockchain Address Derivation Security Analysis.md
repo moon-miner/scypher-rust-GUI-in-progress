@@ -142,7 +142,7 @@ This document provides a comprehensive cryptographic security analysis of the mu
 **Implementation Notes:**
 
 - Uses ExtSecretKey for proper key derivation
-- Compatible with major Ergo wallets (Yoroi, Nautilus)
+- Compatible with major Ergo wallets (Ergo Android wallet, Nautilus)
 - Proper account and address index handling
 - Follows same security standards as other secp256k1 implementations
 
