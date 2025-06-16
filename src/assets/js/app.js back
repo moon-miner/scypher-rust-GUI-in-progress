@@ -1,0 +1,1875 @@
+/**
+ * SCypher GUI v3.0 - Main Application
+ * Entry point and core application logic
+ */
+
+// Variables globales para expansión
+let expandedNetworks = new Set();
+let activeBitcoinTabs = new Map();
+
+
+/**
+ * Application Initialization
+ */
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 SCypher GUI v3.0 initializing...');
+
+    try {
+        // Initialize Tauri backend
+        await initializeTauri();
+
+        // Load BIP39 word list
+        bip39WordList = await invoke('get_bip39_wordlist');
+        console.log(`Loaded ${bip39WordList.length} BIP39 words from backend`);
+
+        // Initialize core systems
+        await initializeApplication();
+
+        console.log('✅ Application initialized successfully');
+    } catch (error) {
+        console.error('Failed to initialize:', error);
+        alert('Failed to initialize application. Please restart.');
+    }
+});
+
+async function initializeApplication() {
+    // Initialize tab system and load templates
+    await tabManager.initializeTabs();
+
+    // Initialize global event listeners
+    initializeGlobalEventListeners();
+
+    // Initialize specialized systems
+    await initializeTauriFileDrop();
+    initializeTooltipSystem();
+    initializeSecureMode();
+
+    // Preload critical icons
+    preloadCriticalIcons(); // No await - se ejecuta en background
+
+    // Update initial UI state
+    updateValidationStatus();
+    updateProcessButtonState();
+    tabManager.updateTabHeaders();
+}
+
+/**
+ * Global Event Listeners
+ */
+function initializeGlobalEventListeners() {
+    // Secure mode toggle
+    const secureMode = document.getElementById('secureMode');
+    if (secureMode) {
+        secureMode.addEventListener('click', toggleSecureMode);
+    }
+}
+
+/**
+ * Security Functions
+ */
+function toggleSecureMode() {
+    secureMode = !secureMode;
+    const button = document.getElementById('secureMode');
+    const mainContent = document.getElementById('mainContent');
+    const securityStatus = document.getElementById('securityStatus');
+
+    if (secureMode) {
+        button.textContent = '🛡️ Secure Screen: ON';
+        button.classList.add('active');
+        if (mainContent) mainContent.classList.add('secure-hidden');
+        if (securityStatus) securityStatus.textContent = 'Secure mode active - content hidden';
+    } else {
+        button.textContent = '🛡️ Secure Screen: OFF';
+        button.classList.remove('active');
+        if (mainContent) mainContent.classList.remove('secure-hidden');
+        if (securityStatus) securityStatus.textContent = 'Secure mode ready';
+    }
+}
+
+/**
+ * SOLUCIÓN DEFINITIVA - Animación JavaScript Pura
+ */
+async function processSeed() {
+    const phrase = currentWords.join(' ');
+    const passwordInput = document.getElementById('passwordInput');
+    if (!passwordInput) return;
+
+    const password = passwordInput.value;
+
+    const progressBar = document.getElementById('progressBar');
+    const progressFill = document.getElementById('progressFill');
+    const resultArea = document.getElementById('resultArea');
+    const statusText = document.getElementById('statusText');
+    const processButton = document.getElementById('processButton');
+
+    console.log('🎬 DEFINITIVO: JavaScript animation...');
+
+    let startTime = Date.now();
+    let isAnimating = false;
+    let animationPosition = -40; // Posición inicial
+
+    try {
+        // UI UPDATE
+        if (processButton) {
+            processButton.disabled = true;
+            processButton.textContent = '⏳ Processing...';
+        }
+
+        if (statusText) {
+            statusText.textContent = 'Executing Argon2id (3 iterations, 64MB)...';
+        }
+
+        // SETUP PROGRESS BAR BASE
+        if (progressBar && progressFill) {
+            console.log('📊 Setting up JS-controlled animation...');
+
+            progressBar.style.cssText = `
+                width: 100% !important;
+                height: 8px !important;
+                background: rgba(60, 60, 60, 0.4) !important;
+                border-radius: 4px !important;
+                margin: 20px 0 !important;
+                overflow: hidden !important;
+                opacity: 1 !important;
+                display: block !important;
+                border: 1px solid rgba(255, 149, 0, 0.3) !important;
+                position: relative !important;
+            `;
+
+            progressFill.style.cssText = `
+                position: absolute !important;
+                top: 0 !important;
+                left: -40% !important;
+                height: 100% !important;
+                width: 35% !important;
+                background: linear-gradient(90deg,
+                    transparent 0%,
+                    rgba(255, 149, 0, 0.4) 20%,
+                    #ff9500 50%,
+                    rgba(255, 149, 0, 0.4) 80%,
+                    transparent 100%
+                ) !important;
+                border-radius: 3px !important;
+                transition: none !important;
+                animation: none !important;
+            `;
+
+            // FUNCIÓN DE ANIMACIÓN JAVASCRIPT
+            const animateBar = () => {
+                if (!isAnimating || !progressFill) return;
+
+                // Mover de -40% a 105%
+                animationPosition += 1.2; // Velocidad de movimiento
+
+                if (animationPosition > 105) {
+                    animationPosition = -40; // Reiniciar ciclo
+                }
+
+                progressFill.style.left = `${animationPosition}%`;
+
+                // Continuar animación
+                requestAnimationFrame(animateBar);
+            };
+
+            // INICIAR ANIMACIÓN
+            isAnimating = true;
+            animationPosition = -40;
+            requestAnimationFrame(animateBar);
+
+            console.log('📊 JavaScript animation started');
+        }
+
+        // Delay para establecer animación
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        startTime = Date.now();
+
+        console.log('🔐 Calling ASYNC Argon2id with JS animation...');
+
+        // LLAMAR AL BACKEND ASYNC
+        const result = await invoke('transform_seed_phrase', {
+            phrase: phrase,
+            password: password,
+            iterations: 3,
+            memoryCost: 65536
+        });
+
+        const processingTime = Date.now() - startTime;
+        console.log(`✅ Async Argon2id completed in: ${processingTime}ms`);
+
+        // PARAR ANIMACIÓN Y COMPLETAR
+        isAnimating = false;
+
+        if (progressFill) {
+            console.log('📊 === FIXED: Starting completion transition ===');
+
+            // RESET COMPLETO
+            progressFill.style.cssText = '';
+            progressBar.offsetHeight; // Force reflow
+
+            // Aplicar estilos SIN transición primero
+            progressFill.style.position = 'static';
+            progressFill.style.width = '0%';
+            progressFill.style.height = '100%';
+            progressFill.style.background = 'linear-gradient(90deg, #ff9500, #ff7b00)';
+            progressFill.style.borderRadius = '3px';
+            progressFill.style.transition = 'none'; // SIN transición inicialmente
+
+            // Force reflow para establecer 0%
+            progressFill.offsetWidth;
+
+            console.log('📊 Width set to 0% without transition:', getComputedStyle(progressFill).width);
+
+            // AHORA agregar transición y animar
+            setTimeout(() => {
+                if (progressFill) {
+                    console.log('📊 Adding transition and animating to 100%...');
+                    progressFill.style.transition = 'width 1s ease-out';
+
+                    // Force reflow después de agregar transición
+                    progressFill.offsetWidth;
+
+                    // AHORA cambiar a 100%
+                    setTimeout(() => {
+                        if (progressFill) {
+                            progressFill.style.width = '100%';
+                            console.log('📊 Width changed to 100%');
+
+                            // Check final
+                            setTimeout(() => {
+                                console.log('📊 FINAL width:', getComputedStyle(progressFill).width);
+                            }, 1200);
+                        }
+                    }, 50);
+                }
+            }, 100);
+        }
+
+        if (statusText) {
+            statusText.textContent = `Processing completed in ${processingTime}ms`;
+        }
+
+        // Esperar completado
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // PROCESAR RESULTADO
+        if (result.success && result.result) {
+            const resultText = document.getElementById('resultText');
+            if (resultText) resultText.textContent = result.result;
+
+            // Ocultar barra
+            if (progressBar) {
+                progressBar.style.opacity = '0';
+                progressBar.style.transition = 'opacity 0.4s ease';
+            }
+
+            if (resultArea) resultArea.classList.add('show');
+
+            if (statusText) {
+                statusText.textContent = `Ready • Processing: ${processingTime}ms • ${currentWords.length} words`;
+            }
+
+            // Update AppState
+            AppState.transformedSeed = result.result;
+            AppState.scypherPassword = password;
+
+            // Update UI
+            updateSeedSourcePreviews();
+            tabManager.updateTabHeaders();
+
+            showToast(`Transformation completed in ${processingTime}ms`, 'success');
+        } else {
+            throw new Error(result.error || 'Unknown transformation error');
+        }
+
+    } catch (error) {
+        const processingTime = Date.now() - startTime;
+        console.error('❌ Processing error:', error);
+
+        // Parar animación
+        isAnimating = false;
+
+        if (progressBar) progressBar.style.opacity = '0';
+        if (statusText) statusText.textContent = `Error after ${processingTime}ms`;
+
+        showToast(`Processing failed: ${error.message || error}`, 'error');
+    } finally {
+        // Cleanup
+        isAnimating = false;
+
+        if (processButton) {
+            processButton.disabled = false;
+            processButton.textContent = '🔄 Process Seed Phrase';
+        }
+    }
+}
+
+/**
+ * Network Selection Functions
+ */
+function toggleNetworkSelection(network, buttonElement) {
+    const index = AppState.selectedNetworks.indexOf(network);
+
+    if (index > -1) {
+        AppState.selectedNetworks.splice(index, 1);
+        buttonElement.classList.remove('selected');
+    } else {
+        AppState.selectedNetworks.push(network);
+        buttonElement.classList.add('selected');
+    }
+
+    updateDerivationButtonState();
+    updateBip39Warning();
+}
+
+function selectAllNetworks() {
+    const allNetworks = ['bitcoin', 'ethereum', 'ergo', 'tron', 'bsc', 'polygon', 'cardano', 'dogecoin', 'litecoin', 'solana'];
+    AppState.selectedNetworks = [...allNetworks];
+
+    document.querySelectorAll('.network-button').forEach(button => {
+        button.classList.add('selected');
+    });
+
+    updateDerivationButtonState();
+    updateBip39Warning();
+}
+
+function clearAllNetworks() {
+    AppState.selectedNetworks = [];
+
+    document.querySelectorAll('.network-button').forEach(button => {
+        button.classList.remove('selected');
+    });
+
+    updateDerivationButtonState();
+    updateBip39Warning();
+}
+
+function updateBip39Warning() {
+    const warning = document.getElementById('bip39Warning');
+    const passphrase = document.getElementById('bip39Passphrase');
+
+    if (!warning || !passphrase) return;
+
+    if (passphrase.value && AppState.selectedNetworks.some(net =>
+        ['cardano', 'solana'].includes(net))) {
+        warning.style.display = 'block';
+    } else {
+        warning.style.display = 'none';
+    }
+}
+
+function updateDerivationButtonState() {
+    const deriveButton = document.getElementById('deriveButton');
+    if (!deriveButton) return;
+
+    const hasNetworks = AppState.selectedNetworks.length > 0;
+    const hasValidSeed = (AppState.selectedSource === 'input' && AppState.inputSeed) ||
+                        (AppState.selectedSource === 'transformed' && AppState.transformedSeed);
+
+    deriveButton.disabled = !(hasNetworks && hasValidSeed);
+
+    if (hasNetworks && hasValidSeed) {
+        deriveButton.textContent = `🚀 Derive Addresses (${AppState.selectedNetworks.length} networks)`;
+    } else if (!hasNetworks) {
+        deriveButton.textContent = '🚀 Select networks to derive addresses';
+    } else {
+        deriveButton.textContent = '🚀 Select valid seed source';
+    }
+}
+
+/**
+ * Seed Source Management
+ */
+function updateSeedSourcePreviews() {
+    const inputPreview = document.getElementById('inputSeedPreview');
+    const transformedPreview = document.getElementById('transformedSeedPreview');
+    const inputWordCount = document.getElementById('inputWordCount');
+    const transformedOption = document.getElementById('transformedSourceOption');
+
+    if (!inputPreview || !transformedPreview || !inputWordCount || !transformedOption) return;
+
+    // Update input seed preview
+    if (AppState.inputSeed) {
+        inputPreview.textContent = AppState.inputSeed;
+        inputWordCount.textContent = AppState.inputSeedWordCount;
+    } else {
+        inputPreview.textContent = 'No seed phrase entered';
+        inputWordCount.textContent = '0';
+    }
+
+    // Update transformed seed preview and availability
+    if (AppState.transformedSeed) {
+        transformedPreview.textContent = AppState.transformedSeed;
+        transformedOption.removeAttribute('disabled');
+        transformedOption.querySelector('input').disabled = false;
+    } else {
+        transformedPreview.textContent = 'Transform a seed first';
+        transformedOption.setAttribute('disabled', true);
+        transformedOption.querySelector('input').disabled = true;
+
+        // Reset to input if transformed was selected
+        if (AppState.selectedSource === 'transformed') {
+            AppState.selectedSource = 'input';
+            const inputRadio = document.querySelector('input[name="seedSource"][value="input"]');
+            if (inputRadio) inputRadio.checked = true;
+        }
+    }
+}
+
+
+// En src/assets/js/app.js
+// Reemplazar la función deriveAddresses completa
+
+async function deriveAddresses() {
+    const selectedSource = document.querySelector('input[name="seedSource"]:checked')?.value;
+    const bip39PassphraseElement = document.getElementById('bip39Passphrase');
+    const addressCountElement = document.getElementById('addressCount');
+
+    if (!selectedSource || !bip39PassphraseElement || !addressCountElement) return;
+
+    const bip39Passphrase = bip39PassphraseElement.value;
+    const addressCount = parseInt(addressCountElement.value) || 1; // Default a 1 si es inválido
+
+    // Validate inputs
+    if (AppState.selectedNetworks.length === 0) {
+        showToast('Please select at least one network', 'warning');
+        return;
+    }
+
+    // Validar address count
+    if (addressCount < 1 || addressCount > 100) {
+        showToast('Address count must be between 1 and 100', 'warning');
+        return;
+    }
+
+    // Get source seed
+    const seedPhrase = selectedSource === 'input' ?
+        AppState.inputSeed : AppState.transformedSeed;
+
+    if (!seedPhrase) {
+        showToast('No valid seed phrase available', 'error');
+        return;
+    }
+
+    // Start processing
+    AppState.processing = {
+        active: true,
+        type: 'derive',
+        progress: 0,
+        current: 'Preparing derivation...',
+        cancelable: true
+    };
+
+    updateUIForProcessing(true);
+
+    try {
+        console.log('🚀 Calling derive_addresses with address count:', {
+            seedPhrase: seedPhrase.substring(0, 20) + '...',
+            passphrase: bip39Passphrase ? '***' : null,
+            networks: AppState.selectedNetworks,
+            addressCount: addressCount // NUEVO PARÁMETRO
+        });
+
+        AppState.processing.current = `Deriving ${addressCount} addresses per network...`;
+        AppState.processing.progress = 50;
+        updateProgressDisplay();
+
+        // LLAMADA ACTUALIZADA con address_count
+        const result = await invoke('derive_addresses', {
+            seedPhrase: seedPhrase,
+            passphrase: bip39Passphrase || null,
+            networks: AppState.selectedNetworks,
+            addressCount: addressCount // NUEVO PARÁMETRO
+        });
+
+        console.log('✅ Derivation result:', result);
+
+        if (AppState.processing.active) {
+            resetExpansionState(); // Resetear estado de expansión
+            AppState.derivationResults = result;
+            displayResults(result, selectedSource);
+            initializeBitcoinTabs(); // Inicializar pestañas Bitcoin
+            showToast(`Successfully derived ${addressCount} addresses for ${AppState.selectedNetworks.length} networks`, 'success');
+        }
+
+    } catch (error) {
+        console.error('❌ Derivation error:', error);
+        showToast(`Derivation failed: ${error.message}`, 'error');
+    } finally {
+        AppState.processing.active = false;
+        updateUIForProcessing(false);
+    }
+}
+
+function cancelDerivationProcess() {
+    if (AppState.processing.active && AppState.processing.cancelable) {
+        AppState.processing.active = false;
+        showToast('Derivation cancelled by user', 'info');
+    }
+}
+
+function updateUIForProcessing(isProcessing) {
+    // Lock/unlock tabs
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        if (isProcessing) {
+            btn.classList.add('disabled');
+        } else {
+            btn.classList.remove('disabled');
+        }
+    });
+
+    // Update derive button
+    const deriveButton = document.getElementById('deriveButton');
+    const progressSection = document.getElementById('progressSection');
+
+    if (deriveButton && progressSection) {
+        if (isProcessing) {
+            deriveButton.style.display = 'none';
+            progressSection.style.display = 'block';
+        } else {
+            deriveButton.style.display = 'block';
+            progressSection.style.display = 'none';
+        }
+    }
+}
+
+function updateProgressDisplay() {
+    const progressFill = document.getElementById('deriveProgressFill');
+    const progressText = document.getElementById('progressText');
+
+    if (progressFill) {
+        progressFill.style.width = `${AppState.processing.progress}%`;
+    }
+    if (progressText) {
+        progressText.textContent = AppState.processing.current;
+    }
+}
+
+/**
+ * Results Display Management
+ */
+async function displayResults(results, sourceType) {
+    const resultsSection = document.getElementById('resultsSection');
+    const sourceIndicator = document.getElementById('sourceIndicator');
+    const resultsContent = document.getElementById('resultsContent');
+
+    if (!resultsSection || !sourceIndicator || !resultsContent) return;
+
+    // Update source indicator
+    sourceIndicator.textContent = sourceType === 'input' ?
+        'Input seed phrase' : 'SCypher-transformed seed';
+
+    // Show results section
+    resultsSection.style.display = 'block';
+    resultsSection.classList.add('fade-in');
+
+    // Generate content based on view mode
+    const viewMode = document.getElementById('viewMode')?.value || 'detailed';
+
+    if (viewMode === 'detailed') {
+        // Usar nueva función expandible
+        resultsContent.innerHTML = await generateExpandableResults(results);
+    } else {
+        // Mantener vista compacta existente mejorada
+        resultsContent.innerHTML = await generateCompactViewWithIcons(results);
+    }
+}
+
+async function generateDetailedView(results) {
+    let html = '';
+
+    for (const [network, addresses] of Object.entries(results)) {
+        if (addresses.length === 0) continue;
+
+        const networkInfo = getNetworkInfo(network);
+
+        // Cargar icono SVG
+        let iconHtml = networkInfo.fallbackIcon;
+        try {
+            const svgContent = await loadSVGIcon(networkInfo.icon);
+            if (svgContent) {
+                iconHtml = `<span class="network-icon-svg">${svgContent}</span>`;
+            }
+        } catch (error) {
+            console.warn(`Failed to load icon for ${network}`);
+        }
+
+        // TRATAMIENTO ESPECIAL PARA BITCOIN
+        if (network === 'bitcoin') {
+            // Agrupar direcciones Bitcoin por tipo
+            const groupedBitcoin = {
+                legacy: addresses.filter(addr => addr.address_type.includes('Legacy P2PKH')),
+                nested: addresses.filter(addr => addr.address_type.includes('Nested SegWit')),
+                native: addresses.filter(addr => addr.address_type.includes('Native SegWit'))
+            };
+
+            html += `
+                <div class="result-section bitcoin-section" data-network="${network}" style="--network-color: ${networkInfo.color}; --network-color-rgb: ${hexToRgb(networkInfo.color)}">
+                    <div class="result-header">
+                        ${iconHtml}
+                        <h3>${networkInfo.name} (${addresses.length} addresses)</h3>
+                        <div class="network-actions">
+                            <button class="action-button" onclick="copyAllBitcoinAddresses()">Copy All</button>
+                        </div>
+                    </div>
+
+                    <div class="bitcoin-tabs-container">
+                        <div class="bitcoin-tabs-header">
+                            <button class="bitcoin-tab-btn active" onclick="switchBitcoinTab('legacy')" data-tab="legacy">
+                                Legacy P2PKH (${groupedBitcoin.legacy.length})
+                            </button>
+                            <button class="bitcoin-tab-btn" onclick="switchBitcoinTab('nested')" data-tab="nested">
+                                Nested SegWit (${groupedBitcoin.nested.length})
+                            </button>
+                            <button class="bitcoin-tab-btn" onclick="switchBitcoinTab('native')" data-tab="native">
+                                Native SegWit (${groupedBitcoin.native.length})
+                            </button>
+                        </div>
+
+                        <div class="bitcoin-tabs-content">
+            `;
+
+            // Crear contenido para cada tipo
+            Object.entries(groupedBitcoin).forEach(([type, typeAddresses]) => {
+                const isActive = type === 'legacy' ? 'active' : '';
+
+                html += `
+                    <div class="bitcoin-tab-content ${isActive}" id="bitcoin-tab-${type}">
+                `;
+
+                typeAddresses.forEach((addr, index) => {
+                    // Extraer número del address_type
+                    const match = addr.address_type.match(/#(\d+)/);
+                    const addressNumber = match ? `#${match[1]}` : `#${index}`;
+                    const isMaster = index === 0;
+
+                    html += `
+                        <div class="address-item">
+                            <div class="address-info">
+                                <span class="address-index">${addressNumber.replace('#', '')}.</span>
+                                <div class="address-details">
+                                    <div class="address-label">
+                                        ${addr.address}
+                                        ${isMaster ? ' <span class="master-badge">Master</span>' : ''}
+                                    </div>
+                                    <div class="address-path">Path: ${addr.path}</div>
+                                </div>
+                            </div>
+                            <div class="address-actions">
+                                <button class="action-button" onclick="copyToClipboard('${addr.address}')">📋</button>
+                                <button class="action-button" onclick="showAddressInfo('${addr.address_type}', '${addr.path}', '${addr.address}')">ℹ️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+            });
+
+            html += `
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        } else {
+            // TRATAMIENTO NORMAL PARA OTRAS REDES
+            html += `
+                <div class="result-section" data-network="${network}" style="--network-color: ${networkInfo.color}; --network-color-rgb: ${hexToRgb(networkInfo.color)}">
+                    <div class="result-header">
+                        ${iconHtml}
+                        <h3>${networkInfo.name} (${addresses.length} addresses)</h3>
+                        <div class="network-actions">
+                            <button class="action-button" onclick="copyNetworkAddresses('${network}')">Copy All</button>
+                        </div>
+                    </div>
+                    <div class="addresses-list">
+            `;
+
+            addresses.forEach((addr, index) => {
+                // Extraer número del address_type
+                const match = addr.address_type.match(/#(\d+)/);
+                const addressNumber = match ? `#${match[1]}` : `#${index}`;
+                const isMaster = index === 0;
+
+                html += `
+                    <div class="address-item">
+                        <div class="address-info">
+                            <span class="address-index">${addressNumber.replace('#', '')}.</span>
+                            <div class="address-details">
+                                <div class="address-label">
+                                    ${addr.address}
+                                    ${isMaster ? ' <span class="master-badge">Master</span>' : ''}
+                                </div>
+                                <div class="address-path">Path: ${addr.path}</div>
+                            </div>
+                        </div>
+                        <div class="address-actions">
+                            <button class="action-button" onclick="copyToClipboard('${addr.address}')">📋</button>
+                            <button class="action-button" onclick="showAddressInfo('${addr.address_type}', '${addr.path}', '${addr.address}')">ℹ️</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    return html || '<div style="text-align: center; color: #888; padding: 40px;">No addresses generated</div>';
+}
+
+// NUEVA función para manejar pestañas de Bitcoin
+function toggleBitcoinTab(tabId) {
+    const tab = document.getElementById(tabId);
+    const arrow = tab.previousElementSibling.querySelector('.bitcoin-tab-arrow');
+
+    if (tab.classList.contains('active')) {
+        tab.classList.remove('active');
+        arrow.textContent = '▶';
+    } else {
+        tab.classList.add('active');
+        arrow.textContent = '▼';
+    }
+}
+
+// Exportar función al scope global
+window.toggleBitcoinTab = toggleBitcoinTab;
+
+function generateCompactView(results) {
+    let html = '';
+
+    for (const [network, addresses] of Object.entries(results)) {
+        if (addresses.length === 0) continue;
+
+        const networkInfo = getNetworkInfo(network);
+        html += `
+            <div class="compact-result" style="--network-color: ${networkInfo.color}; --network-color-rgb: ${hexToRgb(networkInfo.color)}">
+                <div class="compact-network">
+                    <span class="network-icon">${networkInfo.icon}</span>
+                    <span class="network-name">${networkInfo.name}</span>
+                    <span class="compact-count">(${addresses.length})</span>
+                </div>
+                <div class="compact-actions">
+                    <button class="action-button" onclick="expandNetwork('${network}')">View</button>
+                    <button class="action-button" onclick="copyNetworkAddresses('${network}')">Copy</button>
+                </div>
+            </div>
+        `;
+    }
+
+    return html || '<div style="text-align: center; color: #888; padding: 40px;">No addresses generated</div>';
+}
+
+/**
+ * Export Functions
+ */
+async function exportResults(results, sourceType, format) {
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const filename = `SCypher_addresses_${timestamp}`;
+
+    let content = '';
+    let extension = '';
+
+    switch (format) {
+        case 'json':
+            content = JSON.stringify({
+                source: sourceType,
+                bip39_passphrase: document.getElementById('bip39Passphrase')?.value ? 'used' : 'not_used',
+                generated_at: new Date().toISOString(),
+                networks: results
+            }, null, 2);
+            extension = 'json';
+            break;
+
+        case 'csv':
+            content = generateCSVContent(results);
+            extension = 'csv';
+            break;
+
+        case 'txt':
+            content = generateTXTContent(results, sourceType);
+            extension = 'txt';
+            break;
+    }
+
+    try {
+        await invoke('save_addresses_file', {
+            content: content,
+            filename: `${filename}.${extension}`
+        });
+        showToast(`Addresses exported as ${format.toUpperCase()}`, 'success');
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast(`Export failed: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * Interaction Functions
+ */
+function expandNetwork(network) {
+    // Switch to detailed view and scroll to network
+    const viewMode = document.getElementById('viewMode');
+    if (viewMode) {
+        viewMode.value = 'detailed';
+        displayResults(AppState.derivationResults, AppState.selectedSource);
+    }
+
+    // Find and scroll to the network
+    setTimeout(() => {
+        const networkElement = document.querySelector(`[data-network="${network}"]`);
+        if (networkElement) {
+            networkElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
+}
+
+function showAddressDetails(network, index) {
+    const addresses = AppState.derivationResults[network];
+    if (!addresses || !addresses[index]) return;
+
+    const addr = addresses[index];
+    const networkInfo = getNetworkInfo(network);
+
+    const details = `
+        Network: ${networkInfo.name}
+        Type: ${addr.address_type}
+        Path: ${addr.path}
+        Address: ${addr.address}
+    `;
+
+    showToast(details, 'info', 5000);
+}
+
+/**
+ * Tooltip System
+ */
+function initializeTooltipSystem() {
+    const tooltipElements = [
+        {
+            element: '#bip39Passphrase',
+            content: 'Official BIP39 standard feature. Adds entropy during address derivation. Supported by hardware wallets. Completely separate from SCypher.'
+        },
+        {
+            element: '#passwordInput',
+            content: 'SCypher proprietary method. Creates encrypted seed using XOR + Argon2id. NOT related to BIP39 standard.'
+        },
+        {
+            element: '.seed-source-container',
+            content: 'Input = What you typed/imported. Transformed = Processed with SCypher method.'
+        },
+        {
+            element: '.network-grid',
+            content: 'Each network will generate the specified number of addresses using standard derivation paths.'
+        }
+    ];
+
+    tooltipElements.forEach(({ element, content }) => {
+        // Use setTimeout to ensure elements are loaded
+        setTimeout(() => {
+            const el = document.querySelector(element);
+            if (el) {
+                el.addEventListener('mouseenter', (e) => showTooltip(e, content));
+                el.addEventListener('mouseleave', hideTooltip);
+            }
+        }, 1000);
+    });
+}
+
+function showTooltip(event, content) {
+    const tooltip = document.getElementById('tooltipContainer');
+    const tooltipContent = document.getElementById('tooltipContent');
+
+    if (!tooltip || !tooltipContent) return;
+
+    tooltipContent.textContent = content;
+
+    // Position tooltip
+    const rect = event.target.getBoundingClientRect();
+    tooltip.style.left = `${rect.left + (rect.width / 2)}px`;
+    tooltip.style.top = `${rect.top - 10}px`;
+    tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
+
+    tooltip.classList.add('show');
+}
+
+function hideTooltip() {
+    const tooltip = document.getElementById('tooltipContainer');
+    if (tooltip) {
+        tooltip.classList.remove('show');
+    }
+}
+
+/**
+ * File Handling Functions
+ */
+async function saveToFile() {
+    await handleModernSave();
+}
+
+function useSeedForDerivation() {
+    if (AppState.transformedSeed) {
+        // Switch to derive tab and select transformed source
+        tabManager.switchToTab('derive');
+        setTimeout(() => {
+            const transformedRadio = document.querySelector('input[name="seedSource"][value="transformed"]');
+            if (transformedRadio) {
+                transformedRadio.checked = true;
+                AppState.selectedSource = 'transformed';
+                updateSeedSourcePreviews();
+                updateDerivationButtonState();
+                showToast('Switched to derivation tab with transformed seed selected', 'success');
+            }
+        }, 500);
+    }
+}
+
+/**
+ * Secure Mode Initialization
+ */
+function initializeSecureMode() {
+    // Initialize secure mode state
+    secureMode = false;
+
+    // Update initial security status
+    const securityStatus = document.getElementById('securityStatus');
+    if (securityStatus) {
+        securityStatus.textContent = 'Secure mode ready';
+    }
+}
+
+/**
+ * Additional Global Function Exports
+ */
+window.saveToFile = saveToFile;
+window.useSeedForDerivation = useSeedForDerivation;
+window.expandNetwork = expandNetwork;
+window.showAddressDetails = showAddressDetails;
+window.deriveAddresses = deriveAddresses;
+window.cancelDerivationProcess = cancelDerivationProcess;
+window.toggleNetworkSelection = toggleNetworkSelection;
+window.selectAllNetworks = selectAllNetworks;
+window.clearAllNetworks = clearAllNetworks;
+window.processSeed = processSeed;
+window.generateNewSeed = generateNewSeed;
+window.clearAllWords = clearAllWords;
+window.handleModernBrowse = handleModernBrowse;
+window.updateSeedSourcePreviews = updateSeedSourcePreviews;
+window.updateDerivationButtonState = updateDerivationButtonState;
+window.updateBip39Warning = updateBip39Warning;
+
+// NUEVA: Función para expandir/contraer redes en compact view
+function toggleNetworkExpansion(network) {
+    if (expandedNetworks.has(network)) {
+        expandedNetworks.delete(network);
+    } else {
+        expandedNetworks.add(network);
+    }
+
+    // Regenerar vista compacta
+    displayResults(AppState.derivationResults, AppState.selectedSource);
+}
+
+async function generateCompactViewWithIcons(results) {
+    let html = '';
+
+    for (const [network, addresses] of Object.entries(results)) {
+        if (addresses.length === 0) continue;
+
+        const networkInfo = getNetworkInfo(network);
+        const isExpanded = expandedNetworks.has(network);
+
+        // Intentar cargar icono SVG para la vista compacta
+        let iconHtml = networkInfo.fallbackIcon;
+        try {
+            const svgContent = await loadSVGIcon(networkInfo.icon);
+            if (svgContent) {
+                iconHtml = `<span class="network-icon-svg" style="width: 1.1em; height: 1.1em; display: inline-block;">${svgContent}</span>`;
+            }
+        } catch (error) {
+            console.warn(`Failed to load icon for ${network} in compact view`);
+        }
+
+        html += `
+            <div class="compact-result" style="--network-color: ${networkInfo.color}; --network-color-rgb: ${hexToRgb(networkInfo.color)}">
+                <div class="compact-network">
+                    ${iconHtml}
+                    <span class="network-name">${networkInfo.name}</span>
+                    <span class="compact-count">(${addresses.length})</span>
+                </div>
+                <div class="compact-actions">
+                    <button class="action-button" onclick="toggleNetworkExpansion('${network}')">
+                        ${isExpanded ? 'Hide' : 'View'}
+                    </button>
+                    <button class="action-button" onclick="copyNetworkAddresses('${network}')">Copy</button>
+                </div>
+        `;
+
+        // Si está expandida, mostrar las direcciones
+        if (isExpanded) {
+            html += `<div class="expanded-addresses" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #444;">`;
+
+            // TRATAMIENTO ESPECIAL PARA BITCOIN EN COMPACT VIEW
+            if (network === 'bitcoin') {
+                // Agrupar direcciones Bitcoin por tipo
+                const groupedBitcoin = {
+                    legacy: addresses.filter(addr => addr.address_type.includes('Legacy P2PKH')),
+                    nested: addresses.filter(addr => addr.address_type.includes('Nested SegWit')),
+                    native: addresses.filter(addr => addr.address_type.includes('Native SegWit'))
+                };
+
+                // Mini pestañas para compact view
+                html += `
+                    <div class="compact-bitcoin-tabs">
+                        <div class="compact-tabs-header">
+                            <button class="compact-tab-btn active" onclick="switchCompactBitcoinTab('${network}', 'legacy')" id="compact-legacy-${network}">
+                                Legacy (${groupedBitcoin.legacy.length})
+                            </button>
+                            <button class="compact-tab-btn" onclick="switchCompactBitcoinTab('${network}', 'nested')" id="compact-nested-${network}">
+                                Nested (${groupedBitcoin.nested.length})
+                            </button>
+                            <button class="compact-tab-btn" onclick="switchCompactBitcoinTab('${network}', 'native')" id="compact-native-${network}">
+                                Native (${groupedBitcoin.native.length})
+                            </button>
+                        </div>
+                        <div class="compact-tabs-content">
+                `;
+
+                Object.entries(groupedBitcoin).forEach(([type, typeAddresses]) => {
+                    const isActive = type === 'legacy' ? 'active' : '';
+
+                    html += `
+                        <div class="compact-tab-content ${isActive}" id="compact-content-${type}-${network}">
+                    `;
+
+                    typeAddresses.forEach((addr, index) => {
+                        const match = addr.address_type.match(/#(\d+)/);
+                        const addressNumber = match ? `#${match[1]}` : `#${index}`;
+                        const isMaster = index === 0;
+
+                        html += `
+                            <div class="compact-address-item" style="margin-bottom: 6px; display: flex; align-items: center; font-size: 0.85em;">
+                                <span class="address-index" style="color: #f39c12; font-weight: bold; margin-right: 8px; min-width: 30px;">
+                                    ${addressNumber.replace('#', '')}${isMaster ? '*' : ''}.
+                                </span>
+                                <span class="address-text" style="flex: 1; font-family: monospace; margin-right: 8px; font-size: 0.9em;">
+                                    ${addr.address}
+                                </span>
+                                <button class="action-button" onclick="copyAddress('${addr.address}')" style="background: #333; border: 1px solid #555; color: white; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">📋</button>
+                            </div>
+                        `;
+                    });
+
+                    html += `</div>`;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+
+            } else {
+                // TRATAMIENTO NORMAL PARA OTRAS REDES
+                addresses.forEach((addr, index) => {
+                    const match = addr.address_type.match(/#(\d+)/);
+                    const addressNumber = match ? `#${match[1]}` : `#${index}`;
+                    const isMaster = index === 0;
+
+                    html += `
+                        <div class="address-item" style="margin-bottom: 8px; display: flex; align-items: center;">
+                            <span class="address-index" style="color: ${networkInfo.color}; font-weight: bold; margin-right: 8px;">
+                                ${addressNumber.replace('#', '')}${isMaster ? '*' : ''}.
+                            </span>
+                            <span class="address-text" style="flex: 1; font-family: monospace; margin-right: 8px;">
+                                ${addr.address}
+                            </span>
+                            <button class="action-button" onclick="copyAddress('${addr.address}')" style="background: #333; border: 1px solid #555; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer;">📋</button>
+                        </div>
+                    `;
+                });
+            }
+
+            html += `</div>`;
+        }
+
+        html += `</div>`;
+    }
+
+    return html || '<div style="text-align: center; color: #888; padding: 40px;">No addresses generated</div>';
+}
+
+// ACTUALIZAR la función copyNetworkAddresses para manejar Bitcoin agrupado
+function copyNetworkAddresses(network) {
+    const addresses = AppState.derivationResults[network];
+    if (!addresses || addresses.length === 0) {
+        showToast('No addresses to copy', 'warning');
+        return;
+    }
+
+    const networkInfo = getNetworkInfo(network);
+    let formattedText = `${networkInfo.name} Addresses (${addresses.length}):\n\n`;
+
+    if (network === 'bitcoin') {
+        // Agrupar direcciones Bitcoin por tipo para copia
+        const groupedBitcoin = {
+            'Legacy P2PKH': addresses.filter(addr => addr.address_type.includes('Legacy P2PKH')),
+            'Nested SegWit': addresses.filter(addr => addr.address_type.includes('Nested SegWit')),
+            'Native SegWit': addresses.filter(addr => addr.address_type.includes('Native SegWit'))
+        };
+
+        Object.entries(groupedBitcoin).forEach(([type, typeAddresses]) => {
+            if (typeAddresses.length === 0) return;
+
+            formattedText += `${type}:\n`;
+            typeAddresses.forEach((addr, index) => {
+                const masterLabel = index === 0 ? ' (Master)' : '';
+                formattedText += `${addr.address_type}${masterLabel}: ${addr.address}\n`;
+            });
+            formattedText += '\n';
+        });
+    } else {
+        // Formato normal para otras redes
+        addresses.forEach((addr, index) => {
+            const masterLabel = index === 0 ? ' (Master)' : '';
+            formattedText += `${addr.address_type}${masterLabel}: ${addr.address}\n`;
+        });
+    }
+
+    copyToClipboard(formattedText);
+    showToast(`Copied ${addresses.length} ${networkInfo.name} addresses with types`, 'success');
+}
+
+// NUEVA: Función para copiar dirección individual
+function copyAddress(address) {
+    copyToClipboard(address);
+    showToast('Address copied to clipboard', 'success');
+}
+
+// NUEVA: Función helper para copiar al clipboard
+async function copyToClipboard(text) {
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+        } else {
+            // Fallback para contextos no seguros
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            document.execCommand('copy');
+            textArea.remove();
+        }
+    } catch (error) {
+        console.error('Failed to copy to clipboard:', error);
+        showToast('Failed to copy to clipboard', 'error');
+    }
+}
+
+// ACTUALIZAR la función expandNetwork para modo detallado
+function expandNetwork(network) {
+    // Switch to detailed view and scroll to network
+    const viewMode = document.getElementById('viewMode');
+    if (viewMode && viewMode.value === 'compact') {
+        // Si estamos en compact view, togglear expansión
+        toggleNetworkExpansion(network);
+    } else {
+        // Si estamos en detailed view, cambiar a detailed y hacer scroll
+        if (viewMode) {
+            viewMode.value = 'detailed';
+            displayResults(AppState.derivationResults, AppState.selectedSource);
+        }
+
+        // Find and scroll to the network
+        setTimeout(() => {
+            const networkElement = document.querySelector(`[data-network="${network}"]`);
+            if (networkElement) {
+                networkElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+    }
+}
+
+// Exportar funciones al scope global
+window.toggleNetworkExpansion = toggleNetworkExpansion;
+window.copyNetworkAddresses = copyNetworkAddresses;
+window.copyAddress = copyAddress;
+
+/**
+ * Precargar iconos críticos para mejor rendimiento
+ */
+async function preloadCriticalIcons() {
+    const criticalNetworks = ['bitcoin', 'ethereum', 'tron', 'bsc'];
+
+    const preloadPromises = criticalNetworks.map(async (network) => {
+        const networkInfo = getNetworkInfo(network);
+        if (networkInfo.icon) {
+            try {
+                await loadSVGIcon(networkInfo.icon);
+            } catch (error) {
+                console.warn(`Failed to preload icon for ${network}:`, error);
+            }
+        }
+    });
+
+    await Promise.all(preloadPromises);
+    console.log('✅ Critical icons preloaded');
+}
+
+/**
+ * Función de utilidad para debugging de iconos
+ */
+function debugIconLoading() {
+    console.log('🔍 Icon cache status:');
+    console.log('Cached icons:', Array.from(iconCache.keys()));
+
+    // Probar carga de todos los iconos
+    const networks = ['bitcoin', 'ethereum', 'ergo', 'tron', 'bsc', 'polygon', 'cardano', 'dogecoin', 'litecoin', 'solana'];
+
+    networks.forEach(async (network) => {
+        const networkInfo = getNetworkInfo(network);
+        try {
+            const svgContent = await loadSVGIcon(networkInfo.icon);
+            console.log(`✅ ${network}: ${svgContent ? 'Loaded' : 'Failed'}`);
+        } catch (error) {
+            console.log(`❌ ${network}: Error - ${error.message}`);
+        }
+    });
+}
+
+// Exportar función de debug al global scope para uso en consola
+window.debugIconLoading = debugIconLoading;
+
+// FUNCIONES PARA PESTAÑAS DE BITCOIN
+
+function switchBitcoinTab(tabType) {
+    // Actualizar botones de pestañas
+    document.querySelectorAll('.bitcoin-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tabType}"]`).classList.add('active');
+
+    // Actualizar contenido de pestañas
+    document.querySelectorAll('.bitcoin-tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(`bitcoin-tab-${tabType}`).classList.add('active');
+}
+
+function copyAllBitcoinAddresses() {
+    const bitcoinAddresses = AppState.derivationResults.bitcoin;
+    if (!bitcoinAddresses || bitcoinAddresses.length === 0) {
+        showToast('No Bitcoin addresses to copy', 'warning');
+        return;
+    }
+
+    // Agrupar por tipo
+    const grouped = {
+        legacy: bitcoinAddresses.filter(addr => addr.address_type.includes('Legacy P2PKH')),
+        nested: bitcoinAddresses.filter(addr => addr.address_type.includes('Nested SegWit')),
+        native: bitcoinAddresses.filter(addr => addr.address_type.includes('Native SegWit'))
+    };
+
+    let formattedText = `Bitcoin Addresses (${bitcoinAddresses.length} total):\n\n`;
+
+    if (grouped.legacy.length > 0) {
+        formattedText += `Legacy P2PKH (${grouped.legacy.length}):\n`;
+        grouped.legacy.forEach((addr, index) => {
+            const match = addr.address_type.match(/#(\d+)/);
+            const num = match ? match[1] : index;
+            const masterLabel = index === 0 ? ' (Master)' : '';
+            formattedText += `#${num}${masterLabel}: ${addr.address}\n`;
+        });
+        formattedText += '\n';
+    }
+
+    if (grouped.nested.length > 0) {
+        formattedText += `Nested SegWit (${grouped.nested.length}):\n`;
+        grouped.nested.forEach((addr, index) => {
+            const match = addr.address_type.match(/#(\d+)/);
+            const num = match ? match[1] : index;
+            const masterLabel = index === 0 ? ' (Master)' : '';
+            formattedText += `#${num}${masterLabel}: ${addr.address}\n`;
+        });
+        formattedText += '\n';
+    }
+
+    if (grouped.native.length > 0) {
+        formattedText += `Native SegWit (${grouped.native.length}):\n`;
+        grouped.native.forEach((addr, index) => {
+            const match = addr.address_type.match(/#(\d+)/);
+            const num = match ? match[1] : index;
+            const masterLabel = index === 0 ? ' (Master)' : '';
+            formattedText += `#${num}${masterLabel}: ${addr.address}\n`;
+        });
+    }
+
+    copyToClipboard(formattedText);
+    showToast(`Copied ${bitcoinAddresses.length} Bitcoin addresses with types`, 'success');
+}
+
+function showAddressInfo(addressType, path, address) {
+    const info = `Address Information:\n\nType: ${addressType}\nPath: ${path}\nAddress: ${address}`;
+    alert(info);
+}
+
+// Exportar funciones al scope global
+window.switchBitcoinTab = switchBitcoinTab;
+window.copyAllBitcoinAddresses = copyAllBitcoinAddresses;
+window.showAddressInfo = showAddressInfo;
+
+// Función para pestañas compactas de Bitcoin
+function switchCompactBitcoinTab(network, tabType) {
+    // Actualizar botones de pestañas compactas
+    document.querySelectorAll(`#compact-legacy-${network}, #compact-nested-${network}, #compact-native-${network}`).forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.getElementById(`compact-${tabType}-${network}`).classList.add('active');
+
+    // Actualizar contenido de pestañas compactas
+    document.querySelectorAll(`#compact-content-legacy-${network}, #compact-content-nested-${network}, #compact-content-native-${network}`).forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(`compact-content-${tabType}-${network}`).classList.add('active');
+}
+
+// Exportar función al scope global
+window.switchCompactBitcoinTab = switchCompactBitcoinTab;
+
+/**
+ * =============================================================================
+ * SISTEMA DE EXPANSIÓN PROFESIONAL - Nuevas funciones
+ * =============================================================================
+ */
+
+/**
+ * Función principal para toggle de expansión de red
+ */
+function toggleNetworkExpansion(network) {
+    const container = document.querySelector(`[data-network="${network}"]`);
+    if (!container) return;
+
+    const header = container.querySelector('.network-result-header');
+    const content = container.querySelector('.network-expanded-content');
+    const indicator = container.querySelector('.expansion-indicator');
+
+    if (!header || !content || !indicator) return;
+
+    const isExpanded = expandedNetworks.has(network);
+
+    if (isExpanded) {
+        // Colapsar
+        expandedNetworks.delete(network);
+        header.classList.remove('expanded');
+        content.classList.remove('expanded');
+        indicator.textContent = '▶';
+
+        // Animación suave de colapso
+        content.style.maxHeight = '0px';
+
+    } else {
+        // Expandir
+        expandedNetworks.add(network);
+        header.classList.add('expanded');
+        content.classList.add('expanded');
+        indicator.textContent = '▼';
+
+        // Calcular altura real del contenido
+        const scrollHeight = content.scrollHeight;
+        const maxHeight = Math.min(scrollHeight, 400); // Límite máximo
+        content.style.maxHeight = `${maxHeight}px`;
+
+        // Para Bitcoin, asegurar que la pestaña correcta esté activa
+        if (network === 'bitcoin') {
+            const activeTab = activeBitcoinTabs.get(network) || 'native';
+            setTimeout(() => switchBitcoinMiniTab(network, activeTab), 100);
+        }
+    }
+}
+
+/**
+ * Función para truncar direcciones en el medio
+ */
+function truncateAddress(address, maxLength = 30) {
+    if (!address || address.length <= maxLength) {
+        return address;
+    }
+
+    const startLength = Math.floor((maxLength - 3) / 2);
+    const endLength = maxLength - 3 - startLength;
+
+    return {
+        truncated: true,
+        start: address.substring(0, startLength),
+        end: address.substring(address.length - endLength)
+    };
+}
+
+/**
+ * Función para cambiar pestañas de Bitcoin en vista expandida
+ */
+function switchBitcoinMiniTab(network, tabType) {
+    const container = document.querySelector(`[data-network="${network}"]`);
+    if (!container) return;
+
+    // Actualizar pestañas
+    const tabs = container.querySelectorAll('.bitcoin-mini-tab');
+    tabs.forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.tab === tabType) {
+            tab.classList.add('active');
+        }
+    });
+
+    // Actualizar contenido
+    const contents = container.querySelectorAll('.bitcoin-tab-content');
+    contents.forEach(content => {
+        content.classList.remove('active');
+        if (content.dataset.tab === tabType) {
+            content.classList.add('active');
+        }
+    });
+
+    // Recordar pestaña activa
+    activeBitcoinTabs.set(network, tabType);
+}
+
+/**
+ * Función para copiar dirección individual con feedback
+ */
+async function copyIndividualAddress(address, network) {
+    try {
+        await copyToClipboard(address);
+
+        // Feedback visual temporal
+        const button = event.target;
+        const originalText = button.textContent;
+        button.textContent = '✓';
+        button.style.background = 'rgba(16, 185, 129, 0.8)';
+
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '';
+        }, 1000);
+
+        showToast('Address copied!', 'success', 2000);
+
+    } catch (error) {
+        console.error('Failed to copy address:', error);
+        showToast('Failed to copy address', 'error');
+    }
+}
+
+/**
+ * Función para copiar todas las direcciones de una red con formato mejorado
+ */
+async function copyAllNetworkAddresses(network) {
+    const addresses = AppState.derivationResults[network];
+    if (!addresses || addresses.length === 0) {
+        showToast('No addresses to copy', 'warning');
+        return;
+    }
+
+    const networkInfo = getNetworkInfo(network);
+    let formattedText = `${networkInfo.name} Addresses (${addresses.length} total)\n`;
+    formattedText += `Generated: ${new Date().toLocaleString()}\n\n`;
+
+    if (network === 'bitcoin') {
+        // Para Bitcoin, agrupar por tipo si hay múltiples tipos
+        const grouped = {
+            'Legacy P2PKH': addresses.filter(addr => addr.address_type.includes('Legacy P2PKH')),
+            'Nested SegWit': addresses.filter(addr => addr.address_type.includes('Nested SegWit')),
+            'Native SegWit': addresses.filter(addr => addr.address_type.includes('Native SegWit'))
+        };
+
+        // Si estamos en una pestaña específica, copiar solo esa
+        const activeTab = activeBitcoinTabs.get(network);
+        if (activeTab) {
+            const tabAddresses = grouped[getTabDisplayName(activeTab)] || [];
+            if (tabAddresses.length > 0) {
+                formattedText = `${networkInfo.name} - ${getTabDisplayName(activeTab)} (${tabAddresses.length} addresses)\n`;
+                formattedText += `Generated: ${new Date().toLocaleString()}\n\n`;
+
+                tabAddresses.forEach((addr, index) => {
+                    const num = extractAddressNumber(addr.address_type) || index;
+                    const mainLabel = index === 0 ? ' (Main)' : '';
+                    formattedText += `#${num}${mainLabel}: ${addr.address}\n`;
+                });
+
+                await copyToClipboard(formattedText);
+                showToast(`Copied ${tabAddresses.length} ${getTabDisplayName(activeTab)} addresses`, 'success');
+                return;
+            }
+        }
+
+        // Copiar todos los tipos
+        Object.entries(grouped).forEach(([type, typeAddresses]) => {
+            if (typeAddresses.length === 0) return;
+
+            formattedText += `${type}:\n`;
+            typeAddresses.forEach((addr, index) => {
+                const num = extractAddressNumber(addr.address_type) || index;
+                const mainLabel = index === 0 ? ' (Main)' : '';
+                formattedText += `#${num}${mainLabel}: ${addr.address}\n`;
+            });
+            formattedText += '\n';
+        });
+
+    } else {
+        // Para otras redes, formato simple
+        addresses.forEach((addr, index) => {
+            const num = extractAddressNumber(addr.address_type) || index;
+            const mainLabel = index === 0 ? ' (Main)' : '';
+            formattedText += `#${num}${mainLabel}: ${addr.address}\n`;
+        });
+    }
+
+    await copyToClipboard(formattedText);
+    showToast(`Copied ${addresses.length} ${networkInfo.name} addresses`, 'success');
+}
+
+/**
+ * Función helper para extraer número de dirección del address_type
+ */
+function extractAddressNumber(addressType) {
+    const match = addressType.match(/#(\d+)/);
+    return match ? match[1] : null;
+}
+
+/**
+ * Función helper para obtener nombre de pestaña para mostrar
+ */
+function getTabDisplayName(tabKey) {
+    const names = {
+        'legacy': 'Legacy P2PKH',
+        'nested': 'Nested SegWit',
+        'native': 'Native SegWit'
+    };
+    return names[tabKey] || tabKey;
+}
+
+/**
+ * Función principal para generar HTML de resultados con nueva interfaz
+ */
+async function generateExpandableResults(results) {
+    let html = '';
+
+    for (const [network, addresses] of Object.entries(results)) {
+        if (addresses.length === 0) continue;
+
+        const networkInfo = getNetworkInfo(network);
+        const isExpanded = expandedNetworks.has(network);
+
+        // Cargar icono SVG
+        let iconHtml = networkInfo.fallbackIcon;
+        try {
+            const svgContent = await loadSVGIcon(networkInfo.icon);
+            if (svgContent) {
+                iconHtml = `<span class="network-icon-svg">${svgContent}</span>`;
+            }
+        } catch (error) {
+            console.warn(`Failed to load icon for ${network}`);
+        }
+
+        html += `
+            <div class="network-result-container" data-network="${network}">
+                <div class="network-result-header ${isExpanded ? 'expanded' : ''}"
+                     onclick="toggleNetworkExpansion('${network}')">
+                    <div class="network-info">
+                        <span class="expansion-indicator">${isExpanded ? '▼' : '▶'}</span>
+                        ${iconHtml}
+                        <span class="network-name">${networkInfo.name}</span>
+                        <span class="network-count">(${addresses.length})</span>
+                    </div>
+                    <div class="network-header-actions" onclick="event.stopPropagation()">
+                        <button class="header-action-btn" onclick="copyAllNetworkAddresses('${network}')">
+                            Copy All
+                        </button>
+                    </div>
+                </div>
+
+                <div class="network-expanded-content ${isExpanded ? 'expanded' : ''}">
+        `;
+
+        // Contenido específico según el tipo de red
+        if (network === 'bitcoin') {
+            html += await generateBitcoinExpandedContent(network, addresses);
+        } else {
+            html += generateStandardExpandedContent(network, addresses);
+        }
+
+        html += `
+                </div>
+            </div>
+        `;
+    }
+
+    return html || '<div style="text-align: center; color: #888; padding: 40px;">No addresses generated</div>';
+}
+
+/**
+ * Función para generar contenido expandido de Bitcoin con pestañas
+ */
+async function generateBitcoinExpandedContent(network, addresses) {
+    // Agrupar direcciones por tipo
+    const grouped = {
+        legacy: addresses.filter(addr => addr.address_type.includes('Legacy P2PKH')),
+        nested: addresses.filter(addr => addr.address_type.includes('Nested SegWit')),
+        native: addresses.filter(addr => addr.address_type.includes('Native SegWit'))
+    };
+
+    const activeTab = activeBitcoinTabs.get(network) || 'native';
+
+    let html = `
+        <div class="bitcoin-tabs-in-expanded">
+            <div class="bitcoin-mini-tabs">
+                <button class="bitcoin-mini-tab ${activeTab === 'legacy' ? 'active' : ''}"
+                        data-tab="legacy" onclick="switchBitcoinMiniTab('${network}', 'legacy')">
+                    Legacy (${grouped.legacy.length})
+                </button>
+                <button class="bitcoin-mini-tab ${activeTab === 'nested' ? 'active' : ''}"
+                        data-tab="nested" onclick="switchBitcoinMiniTab('${network}', 'nested')">
+                    Nested (${grouped.nested.length})
+                </button>
+                <button class="bitcoin-mini-tab ${activeTab === 'native' ? 'active' : ''}"
+                        data-tab="native" onclick="switchBitcoinMiniTab('${network}', 'native')">
+                    Native (${grouped.native.length})
+                </button>
+            </div>
+
+            <div class="scroll-container">
+                <div class="addresses-scroll-area">
+    `;
+
+    // Generar contenido para cada pestaña
+    Object.entries(grouped).forEach(([type, typeAddresses]) => {
+        const isActive = type === activeTab;
+
+        html += `
+            <div class="bitcoin-tab-content ${isActive ? 'active' : ''}" data-tab="${type}">
+                <div class="addresses-list">
+        `;
+
+        typeAddresses.forEach((addr, index) => {
+            const addressNumber = extractAddressNumber(addr.address_type) || index;
+            const isMain = index === 0;
+            const truncatedAddr = truncateAddress(addr.address);
+
+            html += `
+                <div class="address-row ${isMain ? 'main-address' : ''}">
+                    <span class="address-number">#${addressNumber}</span>
+                    <span class="address-value" ${truncatedAddr.truncated ?
+                        `data-start="${truncatedAddr.start}" data-end="${truncatedAddr.end}" class="address-value truncated"` :
+                        `title="${addr.address}"`}>
+                        ${truncatedAddr.truncated ? '' : addr.address}
+                    </span>
+                    <button class="copy-address-btn" onclick="copyIndividualAddress('${addr.address}', '${network}')">
+                        📋
+                    </button>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+        `;
+    });
+
+    html += `
+                </div>
+            </div>
+        </div>
+    `;
+
+    return html;
+}
+
+/**
+ * Función para generar contenido expandido estándar
+ */
+function generateStandardExpandedContent(network, addresses) {
+    let html = `
+        <div class="scroll-container">
+            <div class="addresses-scroll-area">
+                <div class="addresses-list">
+    `;
+
+    addresses.forEach((addr, index) => {
+        const addressNumber = extractAddressNumber(addr.address_type) || index;
+        const isMain = index === 0;
+        const truncatedAddr = truncateAddress(addr.address);
+
+        html += `
+            <div class="address-row ${isMain ? 'main-address' : ''}">
+                <span class="address-number">#${addressNumber}</span>
+                <span class="address-value" ${truncatedAddr.truncated ?
+                    `data-start="${truncatedAddr.start}" data-end="${truncatedAddr.end}" class="address-value truncated"` :
+                    `title="${addr.address}"`}>
+                    ${truncatedAddr.truncated ? '' : addr.address}
+                </span>
+                <button class="copy-address-btn" onclick="copyIndividualAddress('${addr.address}', '${network}')">
+                    📋
+                </button>
+            </div>
+        `;
+    });
+
+    html += `
+                </div>
+            </div>
+        </div>
+    `;
+
+    return html;
+}
+
+// Exportar funciones al scope global
+window.toggleNetworkExpansion = toggleNetworkExpansion;
+window.switchBitcoinMiniTab = switchBitcoinMiniTab;
+window.copyIndividualAddress = copyIndividualAddress;
+window.copyAllNetworkAddresses = copyAllNetworkAddresses;
+window.generateExpandableResults = generateExpandableResults;
+
+
+/**
+ * FUNCIONES MEJORADAS PARA PESTAÑAS BITCOIN - AGREGAR AL FINAL DEL app.js
+ */
+
+// Función mejorada para copiar direcciones Bitcoin según pestaña activa
+function copyBitcoinByActiveTab(network) {
+    const addresses = AppState.derivationResults[network];
+    if (!addresses || addresses.length === 0) {
+        showToast('No Bitcoin addresses to copy', 'warning');
+        return;
+    }
+
+    const activeTab = activeBitcoinTabs.get(network) || 'native';
+
+    // Filtrar direcciones según pestaña activa
+    let targetAddresses = [];
+    switch (activeTab) {
+        case 'legacy':
+            targetAddresses = addresses.filter(addr => addr.address_type.includes('Legacy P2PKH'));
+            break;
+        case 'nested':
+            targetAddresses = addresses.filter(addr => addr.address_type.includes('Nested SegWit'));
+            break;
+        case 'native':
+            targetAddresses = addresses.filter(addr => addr.address_type.includes('Native SegWit'));
+            break;
+        default:
+            targetAddresses = addresses;
+    }
+
+    if (targetAddresses.length === 0) {
+        showToast(`No ${getTabDisplayName(activeTab)} addresses found`, 'warning');
+        return;
+    }
+
+    // Generar texto formateado
+    const tabName = getTabDisplayName(activeTab);
+    let formattedText = `Bitcoin ${tabName} Addresses (${targetAddresses.length})\n`;
+    formattedText += `Generated: ${new Date().toLocaleString()}\n\n`;
+
+    targetAddresses.forEach((addr, index) => {
+        const num = extractAddressNumber(addr.address_type) || index;
+        const mainLabel = index === 0 ? ' (Main)' : '';
+        formattedText += `#${num}${mainLabel}: ${addr.address}\n`;
+    });
+
+    copyToClipboard(formattedText);
+    showToast(`Copied ${targetAddresses.length} ${tabName} addresses`, 'success');
+}
+
+// Función para inicializar pestañas Bitcoin con Native por defecto
+function initializeBitcoinTabs() {
+    const bitcoinNetworks = document.querySelectorAll('[data-network="bitcoin"]');
+    bitcoinNetworks.forEach(container => {
+        activeBitcoinTabs.set('bitcoin', 'native');
+
+        // Si ya está expandida, aplicar el estado
+        if (expandedNetworks.has('bitcoin')) {
+            setTimeout(() => switchBitcoinMiniTab('bitcoin', 'native'), 100);
+        }
+    });
+}
+
+// Función helper para manejar clicks en headers de red
+function handleNetworkHeaderClick(event, network) {
+    // Solo expandir/colapsar si no se clickeó un botón de acción
+    if (!event.target.closest('.network-header-actions')) {
+        toggleNetworkExpansion(network);
+    }
+}
+
+// Función para scroll suave a red específica cuando se expande
+function scrollToNetworkIfNeeded(network) {
+    const container = document.querySelector(`[data-network="${network}"]`);
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+
+    // Si el contenedor no está completamente visible, hacer scroll
+    if (rect.top < 0 || rect.bottom > viewportHeight) {
+        container.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+    }
+}
+
+// Función para resetear estado de expansión (útil para nuevos resultados)
+function resetExpansionState() {
+    expandedNetworks.clear();
+    activeBitcoinTabs.clear();
+
+    // Establecer Bitcoin en Native por defecto
+    activeBitcoinTabs.set('bitcoin', 'native');
+}
+
+// Función para obtener estadísticas de direcciones por tipo (útil para debugging)
+function getAddressStats(results) {
+    const stats = {};
+
+    Object.entries(results).forEach(([network, addresses]) => {
+        if (network === 'bitcoin') {
+            stats[network] = {
+                legacy: addresses.filter(addr => addr.address_type.includes('Legacy P2PKH')).length,
+                nested: addresses.filter(addr => addr.address_type.includes('Nested SegWit')).length,
+                native: addresses.filter(addr => addr.address_type.includes('Native SegWit')).length,
+                total: addresses.length
+            };
+        } else {
+            stats[network] = {
+                total: addresses.length
+            };
+        }
+    });
+
+    return stats;
+}
+
+// Exportar funciones al scope global
+window.copyBitcoinByActiveTab = copyBitcoinByActiveTab;
+window.initializeBitcoinTabs = initializeBitcoinTabs;
+window.handleNetworkHeaderClick = handleNetworkHeaderClick;
+window.scrollToNetworkIfNeeded = scrollToNetworkIfNeeded;
+window.resetExpansionState = resetExpansionState;
+window.getAddressStats = getAddressStats;
+
+/**
+ * Application Ready
+ */
+console.log('📱 SCypher GUI v3.0 - Modular architecture loaded');
+console.log('🔧 Components: Templates, Utils, Components, App');
+console.log('🎯 Ready for user interaction');

@@ -1,0 +1,112 @@
+<div class="main-content">
+    <!-- Seed Source Selection -->
+    <div class="section">
+        <div class="section-title">🔄 Seed Source Selection</div>
+        <div class="seed-source-container">
+            <label class="source-option">
+                <input type="radio" name="seedSource" value="input" checked>
+                <div class="source-preview">
+                    <div class="source-title">Input seed phrase (<span id="inputWordCount">0</span> words)</div>
+                    <div class="source-text" id="inputSeedPreview">No seed phrase entered</div>
+                </div>
+            </label>
+
+            <label class="source-option" id="transformedSourceOption" disabled>
+                <input type="radio" name="seedSource" value="transformed" disabled>
+                <div class="source-preview">
+                    <div class="source-title">SCypher-transformed seed ✅ Available</div>
+                    <div class="source-text" id="transformedSeedPreview">Transform a seed first</div>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <!-- BIP39 Settings -->
+    <div class="section">
+        <div class="section-title">🌐 BIP39 Standard Settings</div>
+        <div class="bip39-section">
+            <div class="info-card">
+                <div class="info-title">BIP39 Standard: Official Bitcoin Improvement Proposal</div>
+                <div class="info-desc">Purpose: Additional entropy during address derivation</div>
+            </div>
+            <div class="input-group">
+                <label class="label">BIP39 Passphrase (optional):</label>
+                <div class="password-input">
+                    <input type="password" class="input" id="bip39Passphrase"
+                           placeholder="Enter BIP39 passphrase (leave empty for standard derivation)">
+                    <button class="password-toggle" type="button" onclick="togglePasswordVisibility('bip39Passphrase', this)">👁️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Network Selection -->
+    <div class="section">
+        <div class="section-title">🌍 Select Networks</div>
+        <div class="network-grid" id="networkGrid">
+            <!-- Networks will be populated dynamically with real icons -->
+        </div>
+
+        <div class="network-controls">
+            <button class="control-button select-all">🔥 Select All</button>
+            <button class="control-button clear-all">❌ Clear All</button>
+        </div>
+
+        <div class="bip39-warning" id="bip39Warning" style="display: none;">
+            <strong>⚠️ Notice:</strong> Cardano & Solana will derive WITHOUT BIP39 passphrase (not supported by these networks)
+        </div>
+    </div>
+
+    <!-- Address Count -->
+    <div class="section">
+        <div class="section-title">⚙️ Address Count</div>
+        <div class="count-config">
+            <label class="label">Generate addresses per network:</label>
+            <div class="count-input-group">
+                <input type="number" class="count-input" id="addressCount"
+                       value="1" min="1" max="100" placeholder="1">
+                <span class="count-range">(1-100)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Derive Button and Progress -->
+    <div class="action-section">
+        <button class="button derive-button" id="deriveButton" disabled>
+            🚀 Derive Addresses
+        </button>
+
+        <div class="progress-section" id="progressSection" style="display: none;">
+            <div class="progress-bar">
+                <div class="progress-fill" id="deriveProgressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Preparing derivation...</div>
+            <button class="cancel-button" id="cancelDerivation">❌ Cancel Derivation</button>
+        </div>
+    </div>
+
+    <!-- Results Display -->
+    <div class="results-section" id="resultsSection" style="display: none;">
+        <div class="section-title">📍 Derivation Results</div>
+
+        <div class="results-header">
+            <div class="results-info" id="resultsInfo">
+                Derived from: <strong id="sourceIndicator">Input seed phrase</strong>
+            </div>
+            <div class="view-controls">
+                <select class="view-selector" id="viewMode">
+                    <option value="detailed">Detailed View</option>
+                    <option value="compact">Compact View</option>
+                </select>
+                <select class="export-selector" id="exportFormat">
+                    <option value="">Export As...</option>
+                    <option value="json">JSON</option>
+                    <option value="csv">CSV</option>
+                    <option value="txt">TXT</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="results-content" id="resultsContent"></div>
+    </div>
+</div>

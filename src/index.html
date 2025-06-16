@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCypher GUI v3.0</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">SCypher</div>
+            <div class="tagline">XOR-based BIP39 Seed Cipher v3.0</div>
+            <button class="secure-mode-toggle" id="secureMode">
+                🛡️ Secure Screen: OFF
+            </button>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-container">
+            <div class="tab-header">
+                <button class="tab-button active" data-tab="transform">
+                    Transform Seed
+                </button>
+                <button class="tab-button" data-tab="derive">
+                    Derive Addresses <span class="tab-status">(Select Source)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab Content Container -->
+        <div class="tab-content active" id="transformTab">
+            <!-- Transform tab content will be loaded here -->
+        </div>
+
+        <div class="tab-content" id="deriveTab">
+            <!-- Derive tab content will be loaded here -->
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-text" id="statusText">Ready • AUTO mode • BIP39 validation enabled • Argon2id: 3 iterations, 64MB</div>
+            <div class="security-indicator">
+                <span>🛡️</span>
+                <span id="securityStatus">Secure mode ready</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Tooltip Container -->
+    <div id="tooltipContainer" class="tooltip-container">
+        <div class="tooltip-content" id="tooltipContent"></div>
+        <div class="tooltip-arrow" id="tooltipArrow"></div>
+    </div>
+
+    <!-- Load JavaScript modules -->
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/components.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

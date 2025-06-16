@@ -1,0 +1,87 @@
+<div class="main-content" id="mainContent">
+    <div class="warning-banner">
+        <strong>⚠️ Security Notice:</strong> Only process seed phrases you own. Never share encrypted results with untrusted parties.
+    </div>
+
+    <div class="section">
+        <div class="section-title">📝 Input Seed Phrase</div>
+
+        <div class="input-controls">
+            <label style="color: #ddd; font-size: 0.9em;">Mode:</label>
+            <select class="word-count-selector auto" id="wordCount">
+                <option value="auto">AUTO (detect)</option>
+                <option value="12">12 words</option>
+                <option value="15">15 words</option>
+                <option value="18">18 words</option>
+                <option value="21">21 words</option>
+                <option value="24">24 words</option>
+            </select>
+
+            <div class="control-buttons">
+                <button class="small-button generate" id="generateSeed">🎲 Generate New Seed</button>
+                <button class="small-button clear" id="clearInput">🗑️ Clear</button>
+                <button class="small-button" id="browseFile">📁 Browse</button>
+            </div>
+        </div>
+
+        <div class="advanced-input-area">
+            <div class="word-input-container" id="wordContainer">
+                <div class="words-display" id="wordsDisplay"></div>
+                <input type="text" class="word-input" id="wordInput" autocomplete="off" spellcheck="false">
+                <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+            </div>
+            <div class="input-placeholder" id="inputPlaceholder">Start typing or drag & drop a .txt file...</div>
+        </div>
+
+        <div class="validation-status" id="validationStatus">
+            <span class="status-progress">Ready to input seed phrase • AUTO mode active</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">🔐 SCypher Security Settings</div>
+        <div class="security-section">
+            <div class="info-card">
+                <div class="info-title">SCypher Method: Proprietary XOR + Argon2id transformation</div>
+                <div class="info-desc">Purpose: Create encrypted variant of your seed phrase</div>
+            </div>
+
+            <div class="input-group">
+                <label class="label">SCypher Password:</label>
+                <div class="password-input">
+                    <input type="password" class="input" id="passwordInput" placeholder="Enter a strong password">
+                    <button class="password-toggle" id="passwordToggle" type="button">👁️</button>
+                </div>
+            </div>
+
+            <div class="argon2-display">
+                <div class="param-display">
+                    <div class="param-label">Argon2id Iterations</div>
+                    <div class="param-value">3</div>
+                </div>
+                <div class="param-display">
+                    <div class="param-label">Memory Cost</div>
+                    <div class="param-value">64 MB</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <button class="button" id="processButton" disabled>⏳ Enter seed phrase and password...</button>
+    </div>
+
+    <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <div class="result-area" id="resultArea">
+        <div class="section-title">✅ Transformation Result</div>
+        <div class="result-text" id="resultText"></div>
+        <div class="result-actions">
+            <button class="copy-button" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+            <button class="copy-button" onclick="saveToFile()">💾 Save to File</button>
+            <button class="copy-button" onclick="useSeedForDerivation()">🔗 Use for Derivation →</button>
+        </div>
+    </div>
+</div>

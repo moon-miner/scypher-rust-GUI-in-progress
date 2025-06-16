@@ -1,0 +1,24 @@
+patato@patato:/media/patato/CONTENEDOR 2/REPOSITORIOS/SCypher-rust/scypher-gui/src/assets$ tree
+.
+├── css
+│   ├── components.css
+│   └── main.css
+├── icons
+│   ├── ada.svg
+│   ├── bnb.svg
+│   ├── btc.svg
+│   ├── doge.svg
+│   ├── erg.svg
+│   ├── eth.svg
+│   ├── ltc.svg
+│   ├── matic.svg
+│   ├── sol.svg
+│   └── trx.svg
+├── js
+│   ├── app.js
+│   ├── components.js
+│   └── utils.js
+└── templates
+    ├── derive-tab.html
+    └── transform-tab.html
+
