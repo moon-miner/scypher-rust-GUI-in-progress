@@ -23,27 +23,24 @@ pub fn derive_keystream(
     iterations: u32,
     memory_cost: u32,
 ) -> Result<Vec<u8>> {
-    // TODO: Implementar Argon2id real en Fase 3
-    // Por ahora, generar datos pseudoaleatorios deterministas para desarrollo
-
     // Usar un salt fijo derivado de la contraseña para hacer determinista
     let salt_bytes = generate_deterministic_salt(password);
 
     // Crear parámetros Argon2id
-    let _params = Params::new(
+    let params = Params::new(
         memory_cost,
         iterations,
         1, // parallelism
         Some(length),
     ).map_err(|e| SCypherError::crypto(format!("Invalid Argon2 parameters: {:?}", e)))?;
 
-    let _argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, _params);
+    let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
 
-    // Para el placeholder, generar datos pseudoaleatorios deterministas
+    // Implementación real de Argon2id
     let mut keystream = vec![0u8; length];
-    for (i, byte) in keystream.iter_mut().enumerate() {
-        *byte = ((password.len() + salt_bytes.len() + i) % 256) as u8;
-    }
+    argon2
+        .hash_password_into(password.as_bytes(), &salt_bytes, &mut keystream)
+        .map_err(|e| SCypherError::crypto(format!("Argon2id derivation failed: {:?}", e)))?;
 
     Ok(keystream)
 }
@@ -74,6 +71,7 @@ pub fn validate_argon2_params(iterations: u32, memory_cost: u32) -> Result<()> {
     Ok(())
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -90,6 +88,33 @@ mod tests {
         // Diferente contraseña debe dar resultado diferente
         let keystream3 = derive_keystream("different_password", 32, 3, 65536).unwrap();
         assert_ne!(keystream, keystream3);
+    }
+
+    #[test]
+    fn test_password_sensitivity() {
+        // Test específico para verificar sensibilidad a cambios en la contraseña
+        let base_password = "CONTRASEÑA";
+        let keystream_base = derive_keystream(base_password, 32, 5, 131072).unwrap();
+
+        // Cambio al final debe producir resultado diferente
+        let changed_end = "CONTRASEÑ8";
+        let keystream_end = derive_keystream(changed_end, 32, 5, 131072).unwrap();
+        assert_ne!(keystream_base, keystream_end, "Cambio al final debe producir keystream diferente");
+
+        // Cambio al principio debe producir resultado diferente
+        let changed_start = "AONTRASEÑA";
+        let keystream_start = derive_keystream(changed_start, 32, 5, 131072).unwrap();
+        assert_ne!(keystream_base, keystream_start, "Cambio al principio debe producir keystream diferente");
+
+        // Cambio en el medio debe producir resultado diferente
+        let changed_middle = "CONTRXSEÑA";
+        let keystream_middle = derive_keystream(changed_middle, 32, 5, 131072).unwrap();
+        assert_ne!(keystream_base, keystream_middle, "Cambio en el medio debe producir keystream diferente");
+
+        // Todos deben ser diferentes entre sí
+        assert_ne!(keystream_end, keystream_start);
+        assert_ne!(keystream_end, keystream_middle);
+        assert_ne!(keystream_start, keystream_middle);
     }
 
     #[test]

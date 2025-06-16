@@ -5263,6 +5263,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tiny-keccak",
+ "tokio",
  "wasm-bindgen",
  "zeroize",
 ]

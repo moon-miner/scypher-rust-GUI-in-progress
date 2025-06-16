@@ -249,7 +249,7 @@ fn derive_cardano_addresses_official(
         println!("🔍 Index {} address: {}", index, address_str);
 
         addresses.push(Address {
-            address_type: format!("Cardano Shelley (Index {})", index),
+            address_type: format!("Cardano #{}", index),
             path: format!("m/1852'/1815'/0'/0/{}", index),
             address: address_str,
         });
@@ -307,7 +307,7 @@ fn derive_solana_from_mnemonic_direct(
         println!("🔍 Index {} address: {}", index, address_str);
 
         addresses.push(Address {
-            address_type: format!("Solana Phantom (Index {})", index),
+            address_type: format!("Solana #{}", index),
             path: derivation_path,
             address: address_str,
         });
@@ -402,88 +402,86 @@ fn derive_bitcoin_addresses(master_key: &XPrv, count: u32) -> Result<Vec<Address
     let mut addresses = Vec::new();
     let secp = bitcoin::secp256k1::Secp256k1::new();
 
-    // Generar direcciones para cada índice solicitado
     for index in 0u32..count {
-        // P2PKH (Legacy) - m/44'/0'/0'/0/index
-        let path = DerivationPath::from_str(&format!("m/44'/0'/0'/0/{}", index))
-            .map_err(|e| SCypherError::crypto(format!("Invalid derivation path: {}", e)))?;
+        // 1. LEGACY P2PKH - BIP44
+        let legacy_path = format!("m/44'/0'/0'/0/{}", index);
+        let legacy_derivation_path = DerivationPath::from_str(&legacy_path)
+            .map_err(|e| SCypherError::crypto(format!("Invalid Bitcoin Legacy path: {}", e)))?;
 
-        let mut current_key = master_key.clone();
-        for child_number in path.as_ref() {
-            current_key = current_key.derive_child(*child_number)
-                .map_err(|e| SCypherError::crypto(format!("Bitcoin derivation failed: {}", e)))?;
+        let mut legacy_key = master_key.clone();
+        for child_number in legacy_derivation_path.as_ref() {
+            legacy_key = legacy_key.derive_child(*child_number)
+                .map_err(|e| SCypherError::crypto(format!("Bitcoin Legacy derivation failed: {}", e)))?;
         }
 
-        let private_key = bitcoin::PrivateKey::new(
-            bitcoin::secp256k1::SecretKey::from_slice(current_key.private_key().to_bytes().as_slice())
+        let legacy_private_key = bitcoin::PrivateKey::new(
+            bitcoin::secp256k1::SecretKey::from_slice(legacy_key.private_key().to_bytes().as_slice())
                 .map_err(|e| SCypherError::crypto(format!("Invalid private key: {}", e)))?,
             Network::Bitcoin
         );
 
-        let public_key = private_key.public_key(&secp);
+        let legacy_public_key = legacy_private_key.public_key(&secp);
+        let legacy_address = bitcoin::Address::p2pkh(&legacy_public_key, Network::Bitcoin);
 
-        // P2PKH (Legacy)
-        let p2pkh_address = bitcoin::Address::p2pkh(&public_key, Network::Bitcoin);
         addresses.push(Address {
-            address_type: format!("Legacy P2PKH (Index {})", index),
-            path: format!("m/44'/0'/0'/0/{}", index),
-            address: p2pkh_address.to_string(),
+            address_type: format!("Legacy P2PKH #{}", index),
+            path: legacy_path,
+            address: legacy_address.to_string(),
         });
 
-        // Solo para el primer índice, agregar también SegWit
-        if index == 0 {
-            // P2WPKH (Native SegWit) - m/84'/0'/0'/0/0
-            let segwit_path = DerivationPath::from_str("m/84'/0'/0'/0/0")
-                .map_err(|e| SCypherError::crypto(format!("Invalid segwit path: {}", e)))?;
+        // 2. NESTED SEGWIT P2SH-P2WPKH - BIP49
+        let nested_path = format!("m/49'/0'/0'/0/{}", index);
+        let nested_derivation_path = DerivationPath::from_str(&nested_path)
+            .map_err(|e| SCypherError::crypto(format!("Invalid Bitcoin Nested SegWit path: {}", e)))?;
 
-            let mut segwit_key = master_key.clone();
-            for child_number in segwit_path.as_ref() {
-                segwit_key = segwit_key.derive_child(*child_number)
-                    .map_err(|e| SCypherError::crypto(format!("SegWit derivation failed: {}", e)))?;
-            }
-
-            let segwit_private = bitcoin::PrivateKey::new(
-                bitcoin::secp256k1::SecretKey::from_slice(segwit_key.private_key().to_bytes().as_slice())
-                    .map_err(|e| SCypherError::crypto(format!("Invalid segwit private key: {}", e)))?,
-                Network::Bitcoin
-            );
-
-            let segwit_public = segwit_private.public_key(&secp);
-            let p2wpkh_address = bitcoin::Address::p2wpkh(&segwit_public, Network::Bitcoin)
-                .map_err(|e| SCypherError::crypto(format!("P2WPKH address creation failed: {}", e)))?;
-
-            addresses.push(Address {
-                address_type: "Native SegWit (P2WPKH)".to_string(),
-                path: "m/84'/0'/0'/0/0".to_string(),
-                address: p2wpkh_address.to_string(),
-            });
-
-            // P2SH-P2WPKH (Nested SegWit) - m/49'/0'/0'/0/0
-            let nested_path = DerivationPath::from_str("m/49'/0'/0'/0/0")
-                .map_err(|e| SCypherError::crypto(format!("Invalid nested path: {}", e)))?;
-
-            let mut nested_key = master_key.clone();
-            for child_number in nested_path.as_ref() {
-                nested_key = nested_key.derive_child(*child_number)
-                    .map_err(|e| SCypherError::crypto(format!("Nested SegWit derivation failed: {}", e)))?;
-            }
-
-            let nested_private = bitcoin::PrivateKey::new(
-                bitcoin::secp256k1::SecretKey::from_slice(nested_key.private_key().to_bytes().as_slice())
-                    .map_err(|e| SCypherError::crypto(format!("Invalid nested private key: {}", e)))?,
-                Network::Bitcoin
-            );
-
-            let nested_public = nested_private.public_key(&secp);
-            let p2shwpkh_address = bitcoin::Address::p2shwpkh(&nested_public, Network::Bitcoin)
-                .map_err(|e| SCypherError::crypto(format!("P2SH-P2WPKH address creation failed: {}", e)))?;
-
-            addresses.push(Address {
-                address_type: "Nested SegWit (P2SH-P2WPKH)".to_string(),
-                path: "m/49'/0'/0'/0/0".to_string(),
-                address: p2shwpkh_address.to_string(),
-            });
+        let mut nested_key = master_key.clone();
+        for child_number in nested_derivation_path.as_ref() {
+            nested_key = nested_key.derive_child(*child_number)
+                .map_err(|e| SCypherError::crypto(format!("Bitcoin Nested SegWit derivation failed: {}", e)))?;
         }
+
+        let nested_private_key = bitcoin::PrivateKey::new(
+            bitcoin::secp256k1::SecretKey::from_slice(nested_key.private_key().to_bytes().as_slice())
+                .map_err(|e| SCypherError::crypto(format!("Invalid private key: {}", e)))?,
+            Network::Bitcoin
+        );
+
+        let nested_public_key = nested_private_key.public_key(&secp);
+        let nested_address = bitcoin::Address::p2shwpkh(&nested_public_key, Network::Bitcoin)
+            .map_err(|e| SCypherError::crypto(format!("P2SH-P2WPKH address creation failed: {}", e)))?;
+
+        addresses.push(Address {
+            address_type: format!("Nested SegWit #{}", index),
+            path: nested_path,
+            address: nested_address.to_string(),
+        });
+
+        // 3. NATIVE SEGWIT P2WPKH - BIP84 (el código original)
+        let native_path = format!("m/84'/0'/0'/0/{}", index);
+        let native_derivation_path = DerivationPath::from_str(&native_path)
+            .map_err(|e| SCypherError::crypto(format!("Invalid Bitcoin Native SegWit path: {}", e)))?;
+
+        let mut native_key = master_key.clone();
+        for child_number in native_derivation_path.as_ref() {
+            native_key = native_key.derive_child(*child_number)
+                .map_err(|e| SCypherError::crypto(format!("Bitcoin Native SegWit derivation failed: {}", e)))?;
+        }
+
+        let native_private_key = bitcoin::PrivateKey::new(
+            bitcoin::secp256k1::SecretKey::from_slice(native_key.private_key().to_bytes().as_slice())
+                .map_err(|e| SCypherError::crypto(format!("Invalid private key: {}", e)))?,
+            Network::Bitcoin
+        );
+
+        let native_public_key = native_private_key.public_key(&secp);
+        let native_address = bitcoin::Address::p2wpkh(&native_public_key, Network::Bitcoin)
+            .map_err(|e| SCypherError::crypto(format!("P2WPKH address creation failed: {}", e)))?;
+
+        addresses.push(Address {
+            address_type: format!("Native SegWit #{}", index),
+            path: native_path,
+            address: native_address.to_string(),
+        });
     }
 
     Ok(addresses)
@@ -534,7 +532,7 @@ fn derive_ethereum_addresses(master_key: &XPrv, count: u32) -> Result<Vec<Addres
         let address = to_eip55_checksum_address(&address_bytes);
 
         addresses.push(Address {
-            address_type: format!("Ethereum (Index {})", index),
+            address_type: format!("Ethereum #{}", index),
             path: format!("m/44'/60'/0'/0/{}", index),
             address,
         });
@@ -581,35 +579,89 @@ fn to_eip55_checksum_address(address_bytes: &[u8]) -> String {
 /// BSC addresses (usa mismas direcciones que Ethereum)
 /// BSC soporta BIP39 passphrase por herencia de Ethereum
 fn derive_bsc_addresses(master_key: &XPrv, count: u32) -> Result<Vec<Address>> {
-    let eth_addresses = derive_ethereum_addresses(master_key, count)?;
-    let mut bsc_addresses = Vec::new();
+    let mut addresses = Vec::new();
 
-    for addr in eth_addresses {
-        bsc_addresses.push(Address {
-            address_type: addr.address_type.replace("Ethereum", "BSC"),
-            path: addr.path,
-            address: addr.address,
+    for index in 0u32..count {
+        // Usar mismo path que Ethereum para BSC
+        let path = DerivationPath::from_str(&format!("m/44'/60'/0'/0/{}", index))
+            .map_err(|e| SCypherError::crypto(format!("Invalid BSC path: {}", e)))?;
+
+        let mut current_key = master_key.clone();
+        for child_number in path.as_ref() {
+            current_key = current_key.derive_child(*child_number)
+                .map_err(|e| SCypherError::crypto(format!("BSC derivation failed: {}", e)))?;
+        }
+
+        let public_key_point = current_key.public_key();
+        let public_key_compressed = public_key_point.to_bytes();
+
+        let secp = secp256k1::Secp256k1::new();
+        let pk = secp256k1::PublicKey::from_slice(&public_key_compressed)
+            .map_err(|e| SCypherError::crypto(format!("Invalid public key: {}", e)))?;
+        let uncompressed = pk.serialize_uncompressed();
+
+        let xy_coords = &uncompressed[1..];
+
+        let mut hasher = Keccak::v256();
+        hasher.update(xy_coords);
+        let mut hash = [0u8; 32];
+        hasher.finalize(&mut hash);
+
+        let address_bytes = &hash[12..];
+        let address = to_eip55_checksum_address(&address_bytes);
+
+        addresses.push(Address {
+            address_type: format!("BSC #{}", index),
+            path: format!("m/44'/60'/0'/0/{}", index),
+            address,
         });
     }
 
-    Ok(bsc_addresses)
+    Ok(addresses)
 }
 
 /// Polygon addresses (usa mismas direcciones que Ethereum)
 /// Polygon soporta BIP39 passphrase por herencia de Ethereum
 fn derive_polygon_addresses(master_key: &XPrv, count: u32) -> Result<Vec<Address>> {
-    let eth_addresses = derive_ethereum_addresses(master_key, count)?;
-    let mut polygon_addresses = Vec::new();
+    let mut addresses = Vec::new();
 
-    for addr in eth_addresses {
-        polygon_addresses.push(Address {
-            address_type: addr.address_type.replace("Ethereum", "Polygon"),
-            path: addr.path,
-            address: addr.address,
+    for index in 0u32..count {
+        // Usar mismo path que Ethereum para Polygon
+        let path = DerivationPath::from_str(&format!("m/44'/60'/0'/0/{}", index))
+            .map_err(|e| SCypherError::crypto(format!("Invalid Polygon path: {}", e)))?;
+
+        let mut current_key = master_key.clone();
+        for child_number in path.as_ref() {
+            current_key = current_key.derive_child(*child_number)
+                .map_err(|e| SCypherError::crypto(format!("Polygon derivation failed: {}", e)))?;
+        }
+
+        let public_key_point = current_key.public_key();
+        let public_key_compressed = public_key_point.to_bytes();
+
+        let secp = secp256k1::Secp256k1::new();
+        let pk = secp256k1::PublicKey::from_slice(&public_key_compressed)
+            .map_err(|e| SCypherError::crypto(format!("Invalid public key: {}", e)))?;
+        let uncompressed = pk.serialize_uncompressed();
+
+        let xy_coords = &uncompressed[1..];
+
+        let mut hasher = Keccak::v256();
+        hasher.update(xy_coords);
+        let mut hash = [0u8; 32];
+        hasher.finalize(&mut hash);
+
+        let address_bytes = &hash[12..];
+        let address = to_eip55_checksum_address(&address_bytes);
+
+        addresses.push(Address {
+            address_type: format!("Polygon #{}", index),
+            path: format!("m/44'/60'/0'/0/{}", index),
+            address,
         });
     }
 
-    Ok(polygon_addresses)
+    Ok(addresses)
 }
 
 // =============================================================================
@@ -662,9 +714,9 @@ fn derive_ergo_addresses(
         );
 
         addresses.push(Address {
-            address_type: format!("Ergo P2PK (Index {})", index),
+            address_type: format!("Ergo #{}", index),
             path: format!("m/44'/429'/0'/0/{}", index),
-            address: encoded_address,
+            address: encoded_address, // CAMBIO: usar encoded_address en lugar de address_string
         });
     }
 
@@ -740,7 +792,7 @@ fn derive_tron_addresses(master_key: &XPrv, count: u32) -> Result<Vec<Address>> 
         }
 
         addresses.push(Address {
-            address_type: format!("TRON (Index {})", index),
+            address_type: format!("TRON #{}", index),
             path: path_str,
             address: tron_address_base58,
         });
@@ -816,9 +868,9 @@ fn derive_dogecoin_addresses(master_key: &XPrv, count: u32) -> Result<Vec<Addres
         let dogecoin_address = bs58::encode(address_bytes).into_string();
 
         addresses.push(Address {
-            address_type: format!("Dogecoin P2PKH (Index {})", index),
+            address_type: format!("Dogecoin #{}", index),
             path: format!("m/44'/3'/0'/0/{}", index),
-            address: dogecoin_address,
+            address: dogecoin_address, // CAMBIO: usar dogecoin_address en lugar de address
         });
     }
 
@@ -865,7 +917,7 @@ fn derive_litecoin_addresses(master_key: &XPrv, count: u32) -> Result<Vec<Addres
         let litecoin_address = bs58::encode(address_bytes).into_string();
 
         addresses.push(Address {
-            address_type: format!("Litecoin P2PKH (Index {})", index),
+            address_type: format!("Litecoin #{}", index),
             path: format!("m/44'/2'/0'/0/{}", index),
             address: litecoin_address,
         });

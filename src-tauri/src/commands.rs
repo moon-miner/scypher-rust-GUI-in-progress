@@ -1,4 +1,5 @@
 use tauri::command;
+use tokio::task;
 use serde::{Deserialize, Serialize};
 use crate::error::{SCypherError, Result};
 use crate::addresses::{derive_addresses as derive_addr, AddressSet};
@@ -66,24 +67,35 @@ pub fn validate_seed_phrase(phrase: String) -> SeedValidation {
     }
 }
 
-/// Transformar frase semilla usando XOR
+/// Transformar frase semilla usando XOR - VERSIÓN ASYNC NO BLOQUEANTE
 #[command]
-pub fn transform_seed_phrase(
+pub async fn transform_seed_phrase(
     phrase: String,
     password: String,
     iterations: u32,
     memory_cost: u32,
 ) -> ProcessResult {
-    match crate::crypto::transform_seed(&phrase, &password, iterations, memory_cost) {
-        Ok(result) => ProcessResult {
+    // Ejecutar Argon2id en thread separado para no bloquear UI
+    let result = task::spawn_blocking(move || {
+        // LA MISMA LÓGICA CRIPTOGRÁFICA EXACTA - SIN CAMBIOS
+        crate::crypto::transform_seed(&phrase, &password, iterations, memory_cost)
+    }).await;
+
+    match result {
+        Ok(Ok(transformed)) => ProcessResult {
             success: true,
-            result: Some(result),
+            result: Some(transformed),
             error: None,
+        },
+        Ok(Err(e)) => ProcessResult {
+            success: false,
+            result: None,
+            error: Some(e.to_string()),
         },
         Err(e) => ProcessResult {
             success: false,
             result: None,
-            error: Some(e.to_string()),
+            error: Some(format!("Task error: {}", e)),
         },
     }
 }
@@ -221,17 +233,44 @@ pub fn generate_seed_phrase(word_count: serde_json::Value) -> Result<String> {
     crate::bip39::conversion::entropy_to_phrase(&entropy)
 }
 
-/// Derivar direcciones HD Wallet para múltiples redes
+/// Derivar direcciones HD Wallet con configuración individual por red
+#[command]
+pub fn derive_addresses_with_config(
+    seed_phrase: String,
+    passphrase: Option<String>,
+    network_configs: std::collections::HashMap<String, crate::addresses::NetworkConfig>,
+) -> Result<AddressSet> {
+    crate::addresses::derive_addresses_with_config(
+        &seed_phrase,
+        passphrase.as_deref(),
+        network_configs
+    )
+}
+
+/// Derivar direcciones HD Wallet para múltiples redes (ACTUALIZADA)
 #[command]
 pub fn derive_addresses(
     seed_phrase: String,
     passphrase: Option<String>,
     networks: Vec<String>,
+    address_count: u32, // NUEVO PARÁMETRO
 ) -> Result<AddressSet> {
-    derive_addr(
+    // Validar address_count
+    let count = if address_count < 1 { 1 } else if address_count > 100 { 100 } else { address_count };
+
+    // Crear configuración usando el count especificado
+    let mut network_configs = std::collections::HashMap::new();
+    for network in networks {
+        network_configs.insert(network, crate::addresses::NetworkConfig {
+            count,
+            use_passphrase: true, // Será aplicado solo a redes que lo soporten
+        });
+    }
+
+    crate::addresses::derive_addresses_with_config(
         &seed_phrase,
         passphrase.as_deref(),
-        &networks
+        network_configs
     )
 }
 
